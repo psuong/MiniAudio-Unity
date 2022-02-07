@@ -1,10 +1,7 @@
 #include "../headers/debug.h"
 
-void InitializeLogger(debug_function_ptr function_ptr) {
-    debug_log = function_ptr;
-}
-
-int add(int a, int b) {
-    debug_log("Hey I added something from C++ and logged it into Unity.");
-    return a + b;
+void InitializeLogger(log_info_ptr log_ptr, log_warn_ptr warn_ptr, log_error_ptr error_ptr) {
+    debug_log = log_ptr;
+    debug_warn = warn_ptr;
+    debug_error = error_ptr;
 }
