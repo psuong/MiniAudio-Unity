@@ -133,7 +133,6 @@ GameObject:
   m_Component:
   - component: {fileID: 122467772}
   - component: {fileID: 122467771}
-  - component: {fileID: 122467770}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -141,14 +140,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &122467770
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 122467769}
-  m_Enabled: 1
 --- !u!20 &122467771
 Camera:
   m_ObjectHideFlags: 0
@@ -342,6 +333,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 1337882468}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34f41316de4f6c3499114cbd3c892a34, type: 3}
+  m_Script: {fileID: 11500000, guid: dc318e11da701fb419dc5a3f502048ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Path: D:\\Music\\Omokage.mp3
+  Path2: D:\\Music\\Stronghold.mp3
