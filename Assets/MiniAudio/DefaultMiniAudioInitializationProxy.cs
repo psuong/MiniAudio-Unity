@@ -16,7 +16,6 @@ namespace MiniAudio {
         void Start() {
             MiniAudioHandler.InitializeEngine();
             MiniAudioHandler.PlaySound(Path);
-            MiniAudioHandler.PlaySound(Path2);
         }
 
 

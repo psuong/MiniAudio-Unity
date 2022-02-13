@@ -7,3 +7,5 @@ add_compile_definitions(MINIAUDIO_EXPORTS)
 set(CMAKE_CXX_STANDARD 14)
 
 add_library(MiniAudio_Unity_Bindings SHARED src/debug.cpp headers/audio.h src/audio.cpp src/miniaudio.c)
+
+add_executable(tests tests/main.cpp src/audio.cpp headers/audio.h headers/debug.h src/debug.cpp src/miniaudio.c)
