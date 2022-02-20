@@ -1,104 +1,125 @@
-//
-// Created by Blank on 2/6/2022.
-//
-
 #include "../headers/audio.h"
 #include "../miniaudio/miniaudio.h"
-#include <stdlib.h>
+#include <cstdlib>
 #include <string>
 #include <vector>
 
-extern void safe_debug_log(const char* message);
-extern void safe_debug_error(const char* message);
+extern void safe_debug_log(const char *message);
+extern void safe_debug_error(const char *message);
 
-// TODO: Create a struct wrapper which points to the index of the ma_sound.
-// The struct should be tracked in C# so that we can play, stop, pause, set the volume etc.
-std::vector<SoundClip> sounds = std::vector<SoundClip>();
-std::vector<uint32_t> free_indices = std::vector<uint32_t>();
+static std::hash<const char *> hasher;
+static AudioEngine* engine;
 
-void initialize_engine_handle() {
-    if (primary_engine != NULL) {
-        safe_debug_log("You are trying to reinitialize the MiniAudio engine which has already been allocated!");
-        return;
-    }
-
-    ma_result result;
-    primary_engine = (ma_engine*)malloc(sizeof(ma_engine));
-
-    result = ma_engine_init(NULL, primary_engine);
-
-    if (result != MA_SUCCESS) {
-        safe_debug_error("Failed to initialize the MiniAudio engine!");
-        free(primary_engine);
-        primary_engine = NULL;
-        return;
-    }
+void InitializedEngine() {
+	if (engine != nullptr) {
+		safe_debug_error("You are trying to reinitialize the AudioEngine!");
+		return;
+	}
+	engine = new AudioEngine();
 }
 
-void release_engine() {
-    if (primary_engine != NULL) {
-        for (size_t i = 0; i < sounds.size(); i++) {
-            SoundClip sound = sounds[i];
-            sound.~SoundClip();
-        }
-
-        sounds.clear();
-        free_indices.clear();
-
-        ma_engine_uninit(primary_engine);
-        free(primary_engine);
-        primary_engine = NULL;
-        safe_debug_log("Successfully released MiniAudio engine.");
-    }
+bool IsEngineInitialized() {
+	return engine != nullptr;
 }
 
-void play_sound(const char* path) {
-    std::string pth = path;
-    std::string message = "Playing path: " + pth;
-    safe_debug_log(message.c_str());
-    ma_engine_play_sound(primary_engine, path, NULL);
+void ReleaseEngine() {
+	if (engine != nullptr) {
+		// engine->free_sounds();
+		engine->~AudioEngine();
+		free(engine);
+		engine = nullptr;
+	}
 }
 
-SoundClip request_sound(const char* path) {
-    ma_result result;
-    ma_sound* sound = (ma_sound*)malloc(sizeof(ma_sound));
-
-    result = ma_sound_init_from_file(primary_engine, path, 0, NULL, NULL, sound);
-    if (result != MA_SUCCESS) {
-        free(sound);
-        return SoundClip();
-    }
-
-    if (free_indices.size() > 0) {
-        uint32_t free_index = *free_indices.end();
-        // Clean up from back to front.
-        free_indices.erase(free_indices.end(), free_indices.end());
-
-        // Reuse the same index and alias a new sound to it.
-        SoundClip sound_clip = sounds[free_index];
-        sound_clip.sound_alias = sound;
-        return sound_clip;
-    } else {
-        // Push a new sound.
-        uint32_t handle = sounds.size();
-        SoundClip sound_clip = SoundClip(handle, sound);
-        sounds.push_back(sound_clip);
-        return sound_clip;
-    }
+void PlaySound(uint32_t handle) {
 }
 
-void release_sound(SoundClip clip) {
-    uint32_t index = clip.handle;
-    free_indices.push_back(index);
-
-    SoundClip sound = sounds[index];
-    sound.~SoundClip();
+AudioEngine& get_engine() {
+	return (AudioEngine &)(*engine);
 }
 
-SoundClip::SoundClip() : handle((uint32_t)(~0)) {
-    sound_alias = NULL;
+AudioEngine::AudioEngine() {
+	if (MA_SUCCESS != ma_engine_init(nullptr, &this->primary_engine)) {
+		safe_debug_error("AudioEngine failed to initialize!");
+		return;
+	}
+
+    this->sound_handles = std::map<uint32_t, std::vector<uint32_t>>();
+    this->sounds = std::vector<ma_sound *>();
+    this->free_handles = std::vector<uint32_t>();
 }
 
-SoundClip::SoundClip(uint32_t index, ma_sound* sound_ptr) : handle(index) {
-    sound_alias = sound_ptr;
+AudioEngine::~AudioEngine() {
+	// this->free_sounds();
+	ma_engine_uninit(&this->primary_engine);
+	safe_debug_log("Successfully released AudioEngine.");
+}
+
+size_t AudioEngine::free_sound_count() {
+	return this->free_handles.size();
+}
+
+// Member AudioEngine implementation
+uint32_t AudioEngine::request_sound(const char *path) {
+    // size_t key = hasher(path);
+    uint32_t handle;
+	ma_sound* sound;
+
+	// First check if there is a handle that we can use
+	if (!this->free_handles.empty()) {
+		auto end = this->free_handles.end();
+		// Grab the index
+		handle = *end;
+		// The index is no longer free so remove it.
+		this->free_handles.erase(end);
+
+		// Grab the sound associated with this handle.
+		sound = sounds[handle];
+	} else {
+		// We do not have an available handle to use, so calculate
+		// the next index in the sounds that are in use.
+		handle = this->sounds.size();
+
+		// We must malloc a new sound and add it into our sounds
+		sound = (ma_sound*)malloc(sizeof(ma_sound));
+		this->sounds.push_back(sound);
+	}
+
+	if (MA_SUCCESS != ma_sound_init_from_file(
+			&this->primary_engine,
+			path,
+			0,
+			nullptr,
+			nullptr,
+			sound)) {
+		// The sound was not successfully initialized, so we store the handle back as a
+		// free handle that we can reuse.
+		this->free_handles.push_back(handle);
+		return UINT32_MAX;
+	}
+
+	// We've successfully initialized the sound.
+	return handle;
+}
+
+void AudioEngine::release_sound(uint32_t handle) {
+	if (handle < this->sounds.size()) {
+		ma_sound* sound = this->sounds[handle];
+		ma_sound_uninit(sound);
+
+		// We can reuse this handle
+		this->free_handles.push_back(handle);
+	}
+}
+
+void AudioEngine::free_sounds() {
+	for (int i = this->sounds.size() - 1; i >= 0; i--) {
+		ma_sound* sound = this->sounds[i];
+		if (sound != nullptr) {
+			ma_sound_uninit(sound);
+			free(sound);
+		}
+		this->free_handles.push_back(i);
+	}
+	this->sounds.clear();
 }

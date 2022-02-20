@@ -4536,7 +4536,7 @@ namespace {
                                {SIGILL, "SIGILL - Illegal instruction signal"},
                                {SIGFPE, "SIGFPE - Floating point error signal"},
                                {SIGSEGV, "SIGSEGV - Segmentation violation signal"},
-                               {SIGTERM, "SIGTERM - Termination request signal"},
+                               {SIGTERM, "SIGTERM - Termination request_sound signal"},
                                {SIGABRT, "SIGABRT - Abort (abnormal termination) signal"}};
 
     struct FatalConditionHandler
