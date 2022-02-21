@@ -9,19 +9,28 @@ TEST_CASE("Initializing the audio engine.") {
 
 	AudioEngine& engine = get_engine();
 
-	uint32_t valid_handle = engine.request_sound(path);
+	SoundLoadParameters default_params = SoundLoadParameters();
+
+	uint32_t valid_handle = engine.request_sound(path, default_params);
 	CHECK(valid_handle == 0);
 	CHECK(engine.free_sound_count() == 0);
 
-	uint32_t invalid_handle = engine.request_sound("aksjdlask");
+	uint32_t invalid_handle = engine.request_sound("aksjdlask", default_params);
 	CHECK(invalid_handle == UINT32_MAX);
 	CHECK(engine.free_sound_count() == 1);
 
-	valid_handle = engine.request_sound(path);
+	valid_handle = engine.request_sound(path, default_params);
 	CHECK(valid_handle == 1);
 	CHECK(engine.free_sound_count() == 0);
 
-	// engine.free_sounds();
+	engine.release_sound(valid_handle);
+	CHECK(engine.free_sound_count() == 1);
+
+	default_params.IsLooping = true;
+	default_params.Volume = 1.0f;
+
+	valid_handle = engine.request_sound(path, default_params);
+
 	ReleaseEngine();
 	CHECK(IsEngineInitialized() == false);
 }

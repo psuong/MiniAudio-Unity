@@ -1,13 +1,11 @@
 #include "../headers/audio.h"
 #include "../miniaudio/miniaudio.h"
 #include <cstdlib>
-#include <string>
 #include <vector>
 
 extern void safe_debug_log(const char *message);
 extern void safe_debug_error(const char *message);
 
-static std::hash<const char *> hasher;
 static AudioEngine* engine;
 
 void InitializedEngine() {
@@ -24,14 +22,19 @@ bool IsEngineInitialized() {
 
 void ReleaseEngine() {
 	if (engine != nullptr) {
-		// engine->free_sounds();
-		engine->~AudioEngine();
-		free(engine);
+		delete engine;
 		engine = nullptr;
 	}
 }
 
-void PlaySound(uint32_t handle) {
+bool PlaySound(uint32_t handle) {
+	safe_debug_error("PlaySound is not implemented!");
+	return false;
+}
+
+bool StopSound(uint32_t handle) {
+	safe_debug_error("StopSound is not implemented!");
+	return false;
 }
 
 AudioEngine& get_engine() {
@@ -39,18 +42,25 @@ AudioEngine& get_engine() {
 }
 
 AudioEngine::AudioEngine() {
+	this->primary_engine = ma_engine();
 	if (MA_SUCCESS != ma_engine_init(nullptr, &this->primary_engine)) {
 		safe_debug_error("AudioEngine failed to initialize!");
 		return;
 	}
-
-    this->sound_handles = std::map<uint32_t, std::vector<uint32_t>>();
     this->sounds = std::vector<ma_sound *>();
     this->free_handles = std::vector<uint32_t>();
 }
 
 AudioEngine::~AudioEngine() {
-	// this->free_sounds();
+	for (uint32_t i = 0; i < this->sounds.size(); i++) {
+		ma_sound *sound = sounds[i];
+
+		if (std::count(this->free_handles.begin(), this->free_handles.end(), i) == 0) {
+			ma_sound_uninit(sound);
+		}
+
+		free(sound);
+	}
 	ma_engine_uninit(&this->primary_engine);
 	safe_debug_log("Successfully released AudioEngine.");
 }
@@ -60,18 +70,17 @@ size_t AudioEngine::free_sound_count() {
 }
 
 // Member AudioEngine implementation
-uint32_t AudioEngine::request_sound(const char *path) {
-    // size_t key = hasher(path);
+uint32_t AudioEngine::request_sound(const char *path, SoundLoadParameters load_params) {
     uint32_t handle;
 	ma_sound* sound;
 
 	// First check if there is a handle that we can use
 	if (!this->free_handles.empty()) {
-		auto end = this->free_handles.end();
 		// Grab the index
-		handle = *end;
+		handle = this->free_handles.back();
+
 		// The index is no longer free so remove it.
-		this->free_handles.erase(end);
+		this->free_handles.pop_back();
 
 		// Grab the sound associated with this handle.
 		sound = sounds[handle];
@@ -88,7 +97,7 @@ uint32_t AudioEngine::request_sound(const char *path) {
 	if (MA_SUCCESS != ma_sound_init_from_file(
 			&this->primary_engine,
 			path,
-			0,
+			MA_SOUND_FLAG_WAIT_INIT,
 			nullptr,
 			nullptr,
 			sound)) {
@@ -96,6 +105,13 @@ uint32_t AudioEngine::request_sound(const char *path) {
 		// free handle that we can reuse.
 		this->free_handles.push_back(handle);
 		return UINT32_MAX;
+	}
+
+	ma_sound_set_looping(sound, load_params.IsLooping);
+	ma_sound_set_volume(sound, load_params.Volume);
+	ma_sound_set_start_time_in_milliseconds(sound, load_params.StartTime);
+	if (load_params.EndTime > load_params.StartTime) {
+		ma_sound_set_stop_time_in_milliseconds(sound, load_params.EndTime);
 	}
 
 	// We've successfully initialized the sound.
@@ -110,16 +126,4 @@ void AudioEngine::release_sound(uint32_t handle) {
 		// We can reuse this handle
 		this->free_handles.push_back(handle);
 	}
-}
-
-void AudioEngine::free_sounds() {
-	for (int i = this->sounds.size() - 1; i >= 0; i--) {
-		ma_sound* sound = this->sounds[i];
-		if (sound != nullptr) {
-			ma_sound_uninit(sound);
-			free(sound);
-		}
-		this->free_handles.push_back(i);
-	}
-	this->sounds.clear();
 }
