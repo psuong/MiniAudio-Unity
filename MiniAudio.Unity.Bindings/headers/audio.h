@@ -40,8 +40,11 @@ public:
 	size_t free_sound_count();
 	uint32_t request_sound(const char* path, SoundLoadParameters load_params);
 	void release_sound(uint32_t handle);
+	void play_sound(uint32_t handle);
+	void stop_sound(uint32_t handle, bool rewind);
+	bool is_sound_playing(uint32_t handle);
 private:
-	ma_engine primary_engine{}{};
+	ma_engine primary_engine;
 	std::vector<ma_sound *> sounds;
 	std::vector<uint32_t> free_handles;
 };

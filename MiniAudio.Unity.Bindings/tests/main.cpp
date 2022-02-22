@@ -27,9 +27,10 @@ TEST_CASE("Initializing the audio engine.") {
 	CHECK(engine.free_sound_count() == 1);
 
 	default_params.IsLooping = true;
-	default_params.Volume = 1.0f;
+	default_params.Volume = 0.5f;
 
 	valid_handle = engine.request_sound(path, default_params);
+	CHECK(engine.free_sound_count() == 0);
 
 	ReleaseEngine();
 	CHECK(IsEngineInitialized() == false);

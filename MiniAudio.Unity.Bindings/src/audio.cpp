@@ -42,7 +42,6 @@ AudioEngine& get_engine() {
 }
 
 AudioEngine::AudioEngine() {
-	this->primary_engine = ma_engine();
 	if (MA_SUCCESS != ma_engine_init(nullptr, &this->primary_engine)) {
 		safe_debug_error("AudioEngine failed to initialize!");
 		return;
@@ -121,9 +120,40 @@ uint32_t AudioEngine::request_sound(const char *path, SoundLoadParameters load_p
 void AudioEngine::release_sound(uint32_t handle) {
 	if (handle < this->sounds.size()) {
 		ma_sound* sound = this->sounds[handle];
+
+		if (ma_sound_is_playing(sound)) {
+			ma_sound_stop(sound);
+		}
+
 		ma_sound_uninit(sound);
 
 		// We can reuse this handle
 		this->free_handles.push_back(handle);
 	}
+}
+
+void AudioEngine::play_sound(uint32_t handle) {
+	if (handle < this->sounds.size()) {
+		ma_sound* sound = this->sounds[handle];
+		ma_sound_start(sound);
+	}
+}
+
+void AudioEngine::stop_sound(uint32_t handle, bool rewind) {
+	if (handle < this->sounds.size()) {
+		ma_sound* sound = this->sounds[handle];
+		ma_sound_stop(sound);
+
+		if (rewind) {
+			ma_sound_seek_to_pcm_frame(sound, 0);
+		}
+	}
+}
+
+bool AudioEngine::is_sound_playing(uint32_t handle) {
+	if (handle < this->sounds.size()) {
+		ma_sound* sound = this->sounds[handle];
+		return ma_sound_is_playing(sound);
+	}
+	return false;
 }
