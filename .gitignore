@@ -82,3 +82,4 @@ crashlytics-build.properties
 *.pdb.meta
 
 /[Aa]ssets/MiniAudio/Plugins
+/[Aa]ssets/MiniAudio/Plugins.meta
