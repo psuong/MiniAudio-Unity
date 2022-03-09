@@ -1,9 +1,8 @@
 using MiniAudio.Interop;
-using MiniAudio.Logging;
 using System;
 using System.Runtime.InteropServices;
 
-namespace MiniAudio {
+namespace MiniAudio.Logging {
 
     public static class DefaultLogInitialization {
 
@@ -17,7 +16,6 @@ namespace MiniAudio {
 #else
         [DllImport("MiniAudio_Unity_Bindings")]
         static extern void InitializeLogger(IntPtr log, IntPtr warn, IntPtr error);
-
 #endif
 
         static LogHandler DebugLogHandler;
@@ -27,8 +25,8 @@ namespace MiniAudio {
         static IntPtr logFunctionPtr;
         static IntPtr warnFunctionPtr;
         static IntPtr errorFunctionPtr;
-
         public static void InitializeLibrary() {
+#if UNITY_EDITOR
             InitHandler = LibraryHandler.GetDelegate<LoggerInitializationHandler>(CommonImports.LibraryHandle, "InitializeLogger");
             DebugLogHandler = new LogHandler(NativeDebug.Log);
             DebugWarnHandler = new LogHandler(NativeDebug.Warn);
@@ -38,6 +36,7 @@ namespace MiniAudio {
             warnFunctionPtr = Marshal.GetFunctionPointerForDelegate(DebugWarnHandler);
             errorFunctionPtr = Marshal.GetFunctionPointerForDelegate(DebugErrorHandler);
             InitializeLogger(logFunctionPtr, warnFunctionPtr, errorFunctionPtr);
+#endif
         }
     }
 }
