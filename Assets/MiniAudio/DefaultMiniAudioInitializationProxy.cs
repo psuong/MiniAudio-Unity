@@ -9,7 +9,7 @@ namespace MiniAudio {
         public string Path2;
 
         void OnEnable() {
-            CommonImports.Initialize();
+            ConstantImports.Initialize();
             DefaultLogInitialization.InitializeLibrary();
             MiniAudioHandler.InitializeLibrary();
         }

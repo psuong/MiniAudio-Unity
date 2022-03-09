@@ -12,9 +12,9 @@ namespace MiniAudio {
         static PlaySoundHandler PlaySoundHandler;
 
         public static void InitializeLibrary() {
-            InitializationHandler = LibraryHandler.GetDelegate<MiniAudioEngineHandler>(CommonImports.LibraryHandle, "initialize_engine_handle");
-            ReleaseHandler = LibraryHandler.GetDelegate<MiniAudioEngineHandler>(CommonImports.LibraryHandle, "release_engine");
-            PlaySoundHandler = LibraryHandler.GetDelegate<PlaySoundHandler>(CommonImports.LibraryHandle, "play_sound");
+            InitializationHandler = LibraryHandler.GetDelegate<MiniAudioEngineHandler>(ConstantImports.MiniAudioHandle, "initialize_engine_handle");
+            ReleaseHandler = LibraryHandler.GetDelegate<MiniAudioEngineHandler>(ConstantImports.MiniAudioHandle, "release_engine");
+            PlaySoundHandler = LibraryHandler.GetDelegate<PlaySoundHandler>(ConstantImports.MiniAudioHandle, "play_sound");
         }
 
         public static void InitializeEngine() {

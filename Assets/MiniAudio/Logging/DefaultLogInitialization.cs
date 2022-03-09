@@ -27,7 +27,7 @@ namespace MiniAudio.Logging {
         static IntPtr errorFunctionPtr;
         public static void InitializeLibrary() {
 #if UNITY_EDITOR
-            InitHandler = LibraryHandler.GetDelegate<LoggerInitializationHandler>(CommonImports.LibraryHandle, "InitializeLogger");
+            InitHandler = LibraryHandler.GetDelegate<LoggerInitializationHandler>(ConstantImports.MiniAudioHandle, "InitializeLogger");
             DebugLogHandler = new LogHandler(NativeDebug.Log);
             DebugWarnHandler = new LogHandler(NativeDebug.Warn);
             DebugErrorHandler = new LogHandler(NativeDebug.Error);
