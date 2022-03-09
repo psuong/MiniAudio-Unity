@@ -34,4 +34,6 @@ TEST_CASE("Initializing the audio engine.") {
 
 	ReleaseEngine();
 	CHECK(IsEngineInitialized() == false);
+
+	sizeof(SoundLoadParameters);
 }

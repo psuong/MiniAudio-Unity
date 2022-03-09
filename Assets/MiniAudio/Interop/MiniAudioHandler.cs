@@ -1,10 +1,12 @@
-﻿namespace MiniAudio.Interop {
+﻿using System.Runtime.InteropServices;
+
+namespace MiniAudio.Interop {
 
 #if UNITY_EDITOR
     public delegate bool MiniEngineInitializationCheckHandler();
     public delegate void MiniAudioEngineHandler();
-    public delegate System.UInt32 MiniAudioLoadHandler(string path, SoundLoadParameters loadParams);
-    public delegate void MiniSoundHandler(System.UInt32 handle);
+    public delegate uint MiniAudioLoadHandler(string path, SoundLoadParameters loadParams);
+    public delegate void MiniSoundHandler(uint handle);
 #endif
 
     public static class MiniAudioHandler {
@@ -38,15 +40,15 @@
             InitializationHandler?.Invoke();
         }
 
-        public static System.UInt32 LoadSound(string path, SoundLoadParameters loadParams) {
+        public static uint LoadSound(string path, SoundLoadParameters loadParams) {
             return LoadSoundHandler.Invoke(path, loadParams);
         }
 
-        public static void PlaySound(System.UInt32 handle) {
+        public static void PlaySound(uint handle) {
             PlaySoundHandler?.Invoke(handle);
         }
 
-        public static void StopSound(System.UInt32 handle) {
+        public static void StopSound(uint handle) {
             StopSoundHandler?.Invoke(handle);
         }
 

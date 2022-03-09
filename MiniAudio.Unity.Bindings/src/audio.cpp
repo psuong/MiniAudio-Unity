@@ -27,14 +27,16 @@ void ReleaseEngine() {
 	}
 }
 
-bool PlaySound(uint32_t handle) {
-	safe_debug_error("PlaySound is not implemented!");
-	return false;
+uint32_t LoadSound(const char* path, SoundLoadParameters loadParams) {
+	return engine->request_sound(path, loadParams);
 }
 
-bool StopSound(uint32_t handle) {
-	safe_debug_error("StopSound is not implemented!");
-	return false;
+void PlaySound(uint32_t handle) {
+	engine->play_sound(handle);
+}
+
+void StopSound(uint32_t handle) {
+	engine->stop_sound(handle, true);
 }
 
 AudioEngine& get_engine() {

@@ -9,7 +9,7 @@ namespace MiniAudio {
         public string Path;
         public string Path2;
 
-        int handle;
+        uint handle;
 
         void OnEnable() {
             ConstantImports.Initialize();
@@ -19,15 +19,19 @@ namespace MiniAudio {
 
         void Start() {
             MiniAudioHandler.InitializeEngine();
-            // handle = MiniAudioHandler.LoadSound(Path, new SoundLoadParameters {
-            //     Volume = 1.0f
-            // });
+            handle = MiniAudioHandler.LoadSound(Path2, new SoundLoadParameters {
+                Volume = 1.0f
+            });
         }
 
         void Update() {
-            // if (Input.GetKeyUp(KeyCode.Space)) {
-            //     MiniAudioHandler.StopSound(handle);
-            // }
+            if (Input.GetKeyUp(KeyCode.A)) {
+                MiniAudioHandler.PlaySound(handle);
+            }
+
+            if (Input.GetKeyUp(KeyCode.Space)) {
+                MiniAudioHandler.StopSound(handle);
+            }
         }
 
         void OnDisable() {
