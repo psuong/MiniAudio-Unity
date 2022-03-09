@@ -33,7 +33,8 @@ namespace MiniAudio.Interop {
             IntPtr symbol = GetProcAddress(libraryPtr, functionName);
 
             if (symbol == IntPtr.Zero) {
-                throw new Exception($"Could not find function: {functionName}");
+                Debug.LogError($"Could not find function: {functionName}");
+                return null;
             }
 
             return Marshal.GetDelegateForFunctionPointer(symbol, typeof(T)) as T;

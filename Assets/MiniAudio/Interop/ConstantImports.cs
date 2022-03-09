@@ -14,6 +14,10 @@ namespace MiniAudio.Interop {
         public static void Initialize() {
             LibraryHandleInternal = LibraryHandler.InitializeLibrary(Application.dataPath + MiniAudioLibPath);
         }
+
+        public static void Release() {
+            LibraryHandler.ReleaseLibrary(MiniAudioHandle);
+        }
 #endif
     }
 }
