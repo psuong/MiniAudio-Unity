@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 
-namespace MiniAudio {
+namespace MiniAudio.Interop {
 
     public static class ConstantImports {
 #if UNITY_EDITOR
