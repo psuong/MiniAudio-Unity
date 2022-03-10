@@ -12,7 +12,15 @@ namespace MiniAudio.Interop.Tests {
 
         [Test]
         public void LoadSoundBinding() {
-            var actual = LibraryHandler.GetDelegate<MiniAudioLoadHandler>(ConstantImports.MiniAudioHandle, "LoadSound");
+            var actual = LibraryHandler.GetDelegate<MiniAudioHandler.MiniAudioLoadHandler>(
+                ConstantImports.MiniAudioHandle, "LoadSound");
+            Assert.AreNotEqual(IntPtr.Zero, actual);
+        }
+
+        [Test]
+        public void UnsafeLoadSoundBinding() {
+            var actual = LibraryHandler.GetDelegate<MiniAudioHandler.UnsafeMiniAudioLoadHandler>(
+                ConstantImports.MiniAudioHandle, "UnsafeLoadSound");
             Assert.AreNotEqual(IntPtr.Zero, actual);
         }
 

@@ -8,11 +8,9 @@ extern void safe_debug_error(const char *message);
 
 static AudioEngine* engine;
 
-void InitializedEngine() {
 void InitializeEngine() {
 	if (engine != nullptr) {
 		safe_debug_error("You are trying to reinitialize the AudioEngine!");
-		safe_debug_error(L"You are trying to reinitialize the AudioEngine!");
 		return;
 	}
 	engine = new AudioEngine();

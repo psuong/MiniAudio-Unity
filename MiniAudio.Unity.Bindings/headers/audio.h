@@ -24,6 +24,7 @@ struct SoundLoadParameters {
 
 MINIAUDIO_API bool IsEngineInitialized();
 MINIAUDIO_API void InitializeEngine();
+MINIAUDIO_API uint32_t LoadSound(const char* path, SoundLoadParameters loadParams);
 MINIAUDIO_API void PlaySound(uint32_t handle);
 MINIAUDIO_API void StopSound(uint32_t handle);
 MINIAUDIO_API void ReleaseEngine();

@@ -30,10 +30,10 @@ namespace MiniAudio.Entities.Systems {
                     var pathBuffer = loadParams[i];
                     char* path = (char*)pathBuffer.GetUnsafeReadOnlyPtr();
 
-                    var handle = MiniAudioHandler.UnsafeLoadSound(
-                        // new string(path, 0, pathBuffer.Length),
-                        path,
-                        (uint)pathBuffer.Length,
+                    var handle = MiniAudioHandler.LoadSound(
+                        new string(path, 0, pathBuffer.Length),
+                        // path,
+                        // (uint)pathBuffer.Length,
                         new SoundLoadParameters {
                             Volume = 1.0f
                         });
