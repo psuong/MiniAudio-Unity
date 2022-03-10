@@ -28,6 +28,7 @@ void ReleaseEngine() {
 }
 
 uint32_t LoadSound(const char* path, SoundLoadParameters loadParams) {
+	safe_debug_log(path);
 	return engine->request_sound(path, loadParams);
 }
 

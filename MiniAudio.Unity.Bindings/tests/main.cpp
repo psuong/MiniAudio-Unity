@@ -1,15 +1,22 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
+#include <filesystem>
 #include "../headers/audio.h"
 
-const char* path = "D:\\Music\\Stronghold.mp3";
+const char* path = "D:\\Music\\¡\\Stronghold.mp3";
+const char* w_path = u8"D:/Music/¡/Stronghold.mp3";
 TEST_CASE("Initializing the audio engine.") {
 	InitializeEngine();
 	CHECK(IsEngineInitialized());
 
 	AudioEngine& engine = get_engine();
 
+	std::filesystem::path fs_path = std::filesystem::path(std::filesystem::u8path(u8"D:\\Music\\¡\\Stronghold.mp3"));
+	auto t = fs_path.u8string();
+
 	SoundLoadParameters default_params = SoundLoadParameters();
+
+	CHECK(w_path != NULL);
 
 	uint32_t valid_handle = engine.request_sound(path, default_params);
 	CHECK(valid_handle == 0);
