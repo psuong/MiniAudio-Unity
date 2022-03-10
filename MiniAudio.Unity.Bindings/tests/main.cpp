@@ -4,7 +4,7 @@
 
 const char* path = "D:\\Music\\Stronghold.mp3";
 TEST_CASE("Initializing the audio engine.") {
-	InitializedEngine();
+	InitializeEngine();
 	CHECK(IsEngineInitialized());
 
 	AudioEngine& engine = get_engine();

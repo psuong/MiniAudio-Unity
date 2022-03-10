@@ -16,15 +16,14 @@
 extern "C" {
 
 struct SoundLoadParameters {
-	bool IsLooping;
-	float Volume;       // Linear volume between 0.0 to 1.0
-	uint32_t StartTime;    // Where the sound will start (in ms).
-	uint32_t EndTime;      // Where the sound will stop, if <= to the StartTime, the end of the clip will be used (in ms).
+	bool IsLooping;         // Should the sound loop over, great for music I guess
+	float Volume;           // Linear volume between 0.0 to 1.0
+	uint32_t StartTime;     // Where the sound will start (in ms).
+	uint32_t EndTime;       // Where the sound will stop, if <= to the StartTime, the end of the clip will be used (in ms).
 };
 
 MINIAUDIO_API bool IsEngineInitialized();
-MINIAUDIO_API void InitializedEngine();
-MINIAUDIO_API uint32_t LoadSound(const char* path, SoundLoadParameters loadParams);
+MINIAUDIO_API void InitializeEngine();
 MINIAUDIO_API void PlaySound(uint32_t handle);
 MINIAUDIO_API void StopSound(uint32_t handle);
 MINIAUDIO_API void ReleaseEngine();
