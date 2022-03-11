@@ -4,9 +4,8 @@
 #include <codecvt>
 #include "../headers/audio.h"
 
-const wchar_t* path = reinterpret_cast<const wchar_t *>("D:\\Music\\¡\\Stronghold.mp3");
-const wchar_t* w_path = reinterpret_cast<const wchar_t *>("D:/Music/¡/Stronghold.mp3");
-TEST_CASE("Initializing the audio engine.") {
+const char* path = "D:\\Music\\Stronghold.mp3";
+TEST_CASE("Initializing the audio engine using an ASCII path.") {
 	InitializeEngine();
 	CHECK(IsEngineInitialized());
 
@@ -15,11 +14,11 @@ TEST_CASE("Initializing the audio engine.") {
 	std::wstring t = std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().from_bytes("D:/Music/¡/Stronghold.mp3");
 
 	SoundLoadParameters default_params = SoundLoadParameters();
-	uint32_t valid_handle = engine.request_sound(t.c_str(), default_params);
+	uint32_t valid_handle = engine.request_sound(path, default_params);
 	CHECK(valid_handle == 0);
 	CHECK(engine.free_sound_count() == 0);
 
-	uint32_t invalid_handle = engine.request_sound(L"aksjdlask", default_params);
+	uint32_t invalid_handle = engine.request_sound("aksjdlask", default_params);
 	CHECK(invalid_handle == UINT32_MAX);
 	CHECK(engine.free_sound_count() == 1);
 
@@ -38,6 +37,19 @@ TEST_CASE("Initializing the audio engine.") {
 
 	ReleaseEngine();
 	CHECK(IsEngineInitialized() == false);
+}
 
-	sizeof(SoundLoadParameters);
+const char* u_path = "D:/Music/¡/Stronghold.mp3";
+TEST_CASE("Loading audio from a unicode path") {
+	InitializeEngine();
+	CHECK(IsEngineInitialized() == true);
+
+	SoundLoadParameters default_params = SoundLoadParameters();
+	uint32_t valid_handle = LoadSound(u_path, default_params);
+	CHECK(valid_handle != UINT32_MAX);
+
+	ReleaseEngine();
+	CHECK(IsEngineInitialized() == false);
+
+	sizeof(char);
 }

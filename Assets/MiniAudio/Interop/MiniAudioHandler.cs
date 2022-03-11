@@ -5,7 +5,7 @@
         public delegate bool MiniEngineInitializationCheckHandler();
         public delegate void MiniAudioEngineHandler();
         public delegate uint MiniAudioLoadHandler(string path, SoundLoadParameters loadParams);
-        public delegate uint UnsafeMiniAudioLoadHandler(char* path, uint length, SoundLoadParameters loadParams);
+        public delegate uint UnsafeMiniAudioLoadHandler(char* path, uint sizeInBytes, SoundLoadParameters loadParams);
         public delegate void MiniSoundHandler(uint handle);
 #endif
 
@@ -49,11 +49,11 @@
             return LoadSoundHandler.Invoke(path, loadParams);
         }
 
-        public static uint UnsafeLoadSound(char* path, uint length, SoundLoadParameters loadParams) {
+        public static uint LoadSound(char* path, uint sizeInBytes, SoundLoadParameters loadParams) {
             if (UnsafeLoadSoundHandler == null) {
                 return uint.MaxValue;
             }
-            return UnsafeLoadSoundHandler.Invoke(path, length, loadParams);
+            return UnsafeLoadSoundHandler.Invoke(path, sizeInBytes, loadParams);
         }
 
         public static void PlaySound(uint handle) {
