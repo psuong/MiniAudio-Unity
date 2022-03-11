@@ -3,14 +3,14 @@
 #include <cstdlib>
 #include <vector>
 
-extern void safe_debug_log(const char *message);
-extern void safe_debug_error(const char *message);
+extern void safe_debug_log(const wchar_t *message);
+extern void safe_debug_error(const wchar_t *message);
 
 static AudioEngine* engine;
 
 void InitializeEngine() {
 	if (engine != nullptr) {
-		safe_debug_error("You are trying to reinitialize the AudioEngine!");
+		safe_debug_error(reinterpret_cast<const wchar_t *>("You are trying to reinitialize the AudioEngine!"));
 		return;
 	}
 	engine = new AudioEngine();
@@ -27,7 +27,7 @@ void ReleaseEngine() {
 	}
 }
 
-uint32_t LoadSound(const char* path, SoundLoadParameters loadParams) {
+uint32_t LoadSound(const wchar_t* path, SoundLoadParameters loadParams) {
 	safe_debug_log(path);
 	return engine->request_sound(path, loadParams);
 }
@@ -46,11 +46,11 @@ AudioEngine& get_engine() {
 
 AudioEngine::AudioEngine() {
 	if (MA_SUCCESS != ma_engine_init(nullptr, &this->primary_engine)) {
-		safe_debug_error("AudioEngine failed to initialize!");
+		safe_debug_error(reinterpret_cast<const wchar_t *>("AudioEngine failed to initialize!"));
 		return;
 	}
-    this->sounds = std::vector<ma_sound *>();
-    this->free_handles = std::vector<uint32_t>();
+	this->sounds = std::vector<ma_sound *>();
+	this->free_handles = std::vector<uint32_t>();
 }
 
 AudioEngine::~AudioEngine() {
@@ -64,7 +64,7 @@ AudioEngine::~AudioEngine() {
 		free(sound);
 	}
 	ma_engine_uninit(&this->primary_engine);
-	safe_debug_log("Successfully released AudioEngine.");
+	safe_debug_log(reinterpret_cast<const wchar_t *>("Successfully released AudioEngine."));
 }
 
 size_t AudioEngine::free_sound_count() {
@@ -72,8 +72,8 @@ size_t AudioEngine::free_sound_count() {
 }
 
 // Member AudioEngine implementation
-uint32_t AudioEngine::request_sound(const char *path, SoundLoadParameters load_params) {
-    uint32_t handle;
+uint32_t AudioEngine::request_sound(const wchar_t *path, SoundLoadParameters load_params) {
+	uint32_t handle;
 	ma_sound* sound;
 
 	// First check if there is a handle that we can use
@@ -96,7 +96,7 @@ uint32_t AudioEngine::request_sound(const char *path, SoundLoadParameters load_p
 		this->sounds.push_back(sound);
 	}
 
-	if (MA_SUCCESS != ma_sound_init_from_file(
+	if (MA_SUCCESS != ma_sound_init_from_file_w(
 			&this->primary_engine,
 			path,
 			MA_SOUND_FLAG_WAIT_INIT,

@@ -16,15 +16,15 @@
 extern "C" {
 
 struct SoundLoadParameters {
-	bool IsLooping;         // Should the sound loop over, great for music I guess
-	float Volume;           // Linear volume between 0.0 to 1.0
-	uint32_t StartTime;     // Where the sound will start (in ms).
-	uint32_t EndTime;       // Where the sound will stop, if <= to the StartTime, the end of the clip will be used (in ms).
+    bool IsLooping;         // Should the sound loop over, great for music I guess
+    float Volume;           // Linear volume between 0.0 to 1.0
+    uint32_t StartTime;     // Where the sound will start (in ms).
+    uint32_t EndTime;       // Where the sound will stop, if <= to the StartTime, the end of the clip will be used (in ms).
 };
 
 MINIAUDIO_API bool IsEngineInitialized();
 MINIAUDIO_API void InitializeEngine();
-MINIAUDIO_API uint32_t LoadSound(const char* path, SoundLoadParameters loadParams);
+MINIAUDIO_API uint32_t LoadSound(const wchar_t* path, SoundLoadParameters loadParams);
 MINIAUDIO_API void PlaySound(uint32_t handle);
 MINIAUDIO_API void StopSound(uint32_t handle);
 MINIAUDIO_API void ReleaseEngine();
@@ -35,18 +35,18 @@ MINIAUDIO_API void ReleaseEngine();
  */
 class AudioEngine {
 public:
-	AudioEngine();
-	~AudioEngine();
-	size_t free_sound_count();
-	uint32_t request_sound(const char* path, SoundLoadParameters load_params);
-	void release_sound(uint32_t handle);
-	void play_sound(uint32_t handle);
-	void stop_sound(uint32_t handle, bool rewind);
-	bool is_sound_playing(uint32_t handle);
+    AudioEngine();
+    ~AudioEngine();
+    size_t free_sound_count();
+    uint32_t request_sound(const wchar_t* path, SoundLoadParameters load_params);
+    void release_sound(uint32_t handle);
+    void play_sound(uint32_t handle);
+    void stop_sound(uint32_t handle, bool rewind);
+    bool is_sound_playing(uint32_t handle);
 private:
-	ma_engine primary_engine;
-	std::vector<ma_sound *> sounds;
-	std::vector<uint32_t> free_handles;
+    ma_engine primary_engine;
+    std::vector<ma_sound *> sounds;
+    std::vector<uint32_t> free_handles;
 };
 
 
