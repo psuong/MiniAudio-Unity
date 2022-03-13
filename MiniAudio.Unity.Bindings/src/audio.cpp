@@ -4,6 +4,7 @@
 #include <codecvt>
 #include <vector>
 #include <locale>
+#include <sstream>
 
 extern void safe_debug_log(const wchar_t *message);
 extern void safe_debug_error(const wchar_t *message);
@@ -29,34 +30,16 @@ void ReleaseEngine() {
 	}
 }
 
-uint32_t LoadSound(const char* path, SoundLoadParameters loadParams) {
+uint32_t LoadSound(const wchar_t* path, SoundLoadParameters loadParams) {
 	return engine->request_sound(path, loadParams);
 }
 
-uint32_t UnsafeLoadSound(const char* path, uint32_t size, SoundLoadParameters) {
-	auto converter = std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>();
-	std::vector<char> chars = std::vector<char>(size);
-	for (int i = 0; i < size; i++) {
-		chars.push_back(path[i]);
-	}
+uint32_t UnsafeLoadSound(const wchar_t* path, uint32_t size, SoundLoadParameters load_params) {
+	std::wstringstream buffer;
+	buffer.write(path, size);
 
-	for (int i = 0; i < size; i++) {
-		safe_debug_log(reinterpret_cast<const wchar_t *>(chars[i]));
-	}
-
-	std::string s(chars.begin(), chars.end());
-	std::wstring converted_t = converter.from_bytes(s.c_str());
-	safe_debug_log(converted_t.c_str());
-	// for (int i = 0; i < 15; i++) {
-	// 	std::string t = std::string(path + i);
-	// 	std::wstring converted_t = converter.from_bytes(t.c_str());
-	// 	safe_debug_log(converted_t.c_str());
-	// }
-	// std::string temp = std::string(path);
-	// std::wstring converted_path = std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>()
-	// 	.from_bytes(temp.c_str());
-	// safe_debug_log(converted_path.c_str());
-	return 0;
+	std::wstring wide_path = buffer.str();
+	return engine->request_sound(path, load_params);
 }
 
 void PlaySound(uint32_t handle) {
@@ -99,11 +82,14 @@ size_t AudioEngine::free_sound_count() {
 }
 
 // Member AudioEngine implementation
-uint32_t AudioEngine::request_sound(const char *path, SoundLoadParameters load_params) {
+uint32_t AudioEngine::request_sound(const wchar_t *path, SoundLoadParameters load_params) {
 	uint32_t handle;
 	ma_sound* sound;
-	std::wstring converted_path = std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>()
-	        .from_bytes(path);
+
+	// std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> convert;
+	// std::wstring w_path = convert.from_bytes((char*)path);
+
+	// safe_debug_log(w_path.c_str());
 
 	// First check if there is a handle that we can use
 	if (!this->free_handles.empty()) {
@@ -127,7 +113,7 @@ uint32_t AudioEngine::request_sound(const char *path, SoundLoadParameters load_p
 
 	if (MA_SUCCESS != ma_sound_init_from_file_w(
 			&this->primary_engine,
-			converted_path.c_str(),
+			path,
 			MA_SOUND_FLAG_WAIT_INIT,
 			nullptr,
 			nullptr,

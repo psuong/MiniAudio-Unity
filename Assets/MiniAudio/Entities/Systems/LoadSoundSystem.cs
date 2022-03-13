@@ -32,7 +32,7 @@ namespace MiniAudio.Entities.Systems {
 
                     var handle = MiniAudioHandler.LoadSound(
                         path,
-                        (uint)(pathBuffer.Length * sizeof(char)),
+                        (uint)(pathBuffer.Length * 1),
                         new SoundLoadParameters {
                             Volume = 1.0f
                         });
