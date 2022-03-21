@@ -5,7 +5,7 @@ using Unity.Entities;
 namespace MiniAudio.Entities.Systems {
 
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    public class LoadSoundSystem : SystemBase {
+    public partial class LoadSoundSystem : SystemBase {
 
         unsafe struct LoadSoundJob : IJobEntityBatch {
 

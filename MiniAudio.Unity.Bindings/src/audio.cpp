@@ -1,7 +1,6 @@
 #include "../headers/audio.h"
 #include "../miniaudio/miniaudio.h"
 #include <cstdlib>
-#include <codecvt>
 #include <vector>
 #include <locale>
 #include <sstream>
@@ -39,7 +38,8 @@ uint32_t UnsafeLoadSound(const wchar_t* path, uint32_t size, SoundLoadParameters
 	buffer.write(path, size);
 
 	std::wstring wide_path = buffer.str();
-	return engine->request_sound(path, load_params);
+
+	return engine->request_sound(wide_path.c_str(), load_params);
 }
 
 void PlaySound(uint32_t handle) {
@@ -85,12 +85,6 @@ size_t AudioEngine::free_sound_count() {
 uint32_t AudioEngine::request_sound(const wchar_t *path, SoundLoadParameters load_params) {
 	uint32_t handle;
 	ma_sound* sound;
-
-	// std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> convert;
-	// std::wstring w_path = convert.from_bytes((char*)path);
-
-	// safe_debug_log(w_path.c_str());
-
 	// First check if there is a handle that we can use
 	if (!this->free_handles.empty()) {
 		// Grab the index
