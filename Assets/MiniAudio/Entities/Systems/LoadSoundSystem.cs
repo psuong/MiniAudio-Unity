@@ -1,4 +1,5 @@
 using MiniAudio.Interop;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -7,6 +8,9 @@ namespace MiniAudio.Entities.Systems {
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class LoadSoundSystem : SystemBase {
 
+#if !UNITY_EDITOR
+        [BurstCompile]
+#endif
         unsafe struct LoadSoundJob : IJobEntityBatch {
 
             [ReadOnly]
@@ -15,6 +19,7 @@ namespace MiniAudio.Entities.Systems {
             [ReadOnly]
             public EntityTypeHandle EntityType;
 
+            [ReadOnly]
             public ComponentTypeHandle<AudioClip> AudioClipType;
 
             public EntityCommandBuffer CommandBuffer;
@@ -32,17 +37,12 @@ namespace MiniAudio.Entities.Systems {
 
                     var handle = MiniAudioHandler.LoadSound(
                         path,
-                        (uint)(pathBuffer.Length * 1),
-                        new SoundLoadParameters {
-                            Volume = 1.0f
-                        });
+                        (uint)pathBuffer.Length,
+                        audioClip.Parameters);
 
-                    if (audioClip.State == AudioState.Stopped && handle != uint.MaxValue) {
-                        audioClip.State = AudioState.Playing;
+                    if (handle != uint.MaxValue) {
                         audioClip.Handle = handle;
-                        CommandBuffer.RemoveComponent<LoadPath>(entity);
-                        MiniAudioHandler.PlaySound(handle);
-                        audioClips[i] = audioClip;
+                        CommandBuffer.SetComponent(entity, audioClip);
                     }
                 }
             }
@@ -62,8 +62,8 @@ namespace MiniAudio.Entities.Systems {
         protected override void OnUpdate() {
             new LoadSoundJob {
                 LoadPathType  = GetBufferTypeHandle<LoadPath>(true),
+                AudioClipType = GetComponentTypeHandle<AudioClip>(true),
                 EntityType    = GetEntityTypeHandle(),
-                AudioClipType = GetComponentTypeHandle<AudioClip>(false),
                 CommandBuffer = commandBufferSystem.CreateCommandBuffer()
             }.Run(loadSoundQuery);
         }

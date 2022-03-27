@@ -83,3 +83,5 @@ crashlytics-build.properties
 
 /[Aa]ssets/MiniAudio/Plugins
 /[Aa]ssets/MiniAudio/Plugins.meta
+Assets/StreamingAssets
+Assets/StreamingAssets.meta

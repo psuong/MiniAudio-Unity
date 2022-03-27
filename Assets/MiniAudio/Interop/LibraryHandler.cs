@@ -36,7 +36,6 @@ namespace MiniAudio.Interop {
                 Debug.LogError($"Could not find function: {functionName}");
                 return null;
             }
-
             return Marshal.GetDelegateForFunctionPointer(symbol, typeof(T)) as T;
         }
 #endif

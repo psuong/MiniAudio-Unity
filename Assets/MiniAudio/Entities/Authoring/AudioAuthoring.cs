@@ -7,6 +7,7 @@ namespace MiniAudio.Entities.Authoring {
 
     public class AudioAuthoring : MonoBehaviour, IConvertGameObjectToEntity {
 
+        public bool IsPathStreamingAssets;
         public string Path;
         public SoundLoadParameters Parameters;
 
@@ -21,7 +22,12 @@ namespace MiniAudio.Entities.Authoring {
                 UnsafeUtility.MemCpy(buffer.GetUnsafePtr(), head, sizeof(char) * Path.Length);
             }
 
-            dstManager.AddComponentData(entity, AudioClip.New());
+            var audioClip = AudioClip.New();
+            audioClip.Parameters = Parameters;
+            dstManager.AddComponentData(entity, audioClip);
+            dstManager.AddComponentData(entity, new FixedAudioStateHistory {
+                Value = audioClip.CurrentState
+            });
         }
     }
 }

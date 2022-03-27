@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using MiniAudio.Interop;
 using Unity.Entities;
 
@@ -9,23 +10,43 @@ namespace MiniAudio.Entities {
         Paused
     }
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct LoadPath : IBufferElementData {
         public char Value;
     }
 
     public struct AudioClip : IComponentData {
+
+        /// <summary>
+        /// Stores the index in which MiniAudio allocated the sound.
+        /// </summary>
         public uint Handle;
-        public AudioState State;
+
+        /// <summary>
+        /// Stores the current AudioState.
+        /// </summary>
+        public AudioState CurrentState;
+
+        /// <summary>
+        /// Stores the SoundLoadParameters needed to initially load the sound.
+        /// </summary>
         public SoundLoadParameters Parameters;
 
         public static AudioClip New() {
             return new AudioClip {
                 Handle = uint.MaxValue,
-                State = AudioState.Stopped,
+                CurrentState = AudioState.Stopped,
                 Parameters = new SoundLoadParameters {
-                    Volume = 1.0f
+                    Volume = 1.0f,
                 }
             };
         }
+    }
+
+    /// <summary>
+    /// Stores the last known state of the AudioClip.
+    /// </summary>
+    internal struct FixedAudioStateHistory : IComponentData {
+        public AudioState Value;
     }
 }

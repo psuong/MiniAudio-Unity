@@ -1,6 +1,9 @@
-﻿namespace MiniAudio.Interop {
+﻿using Unity.Burst;
+using Unity.Collections;
 
-    public unsafe static class MiniAudioHandler {
+namespace MiniAudio.Interop {
+
+    public static unsafe class MiniAudioHandler {
 #if UNITY_EDITOR
         public delegate bool MiniEngineInitializationCheckHandler();
         public delegate void MiniAudioEngineHandler();
@@ -49,6 +52,7 @@
             return LoadSoundHandler.Invoke(path, loadParams);
         }
 
+        [NotBurstCompatible]
         public static uint LoadSound(char* path, uint sizeInBytes, SoundLoadParameters loadParams) {
             if (UnsafeLoadSoundHandler == null) {
                 return uint.MaxValue;
