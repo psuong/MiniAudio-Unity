@@ -4,15 +4,20 @@ using Unity.Entities;
 
 namespace MiniAudio.Entities {
 
+    [System.Flags]
     public enum AudioState : byte {
-        Stopped,
-        Playing,
-        Paused
+        Stopped = 1 << 0,
+        Playing = 1 << 1,
+        Paused = 1 << 2
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct LoadPath : IBufferElementData {
         public char Value;
+    }
+
+    public struct StreamingPathMetadata : IComponentData {
+        public bool IsStreamingAssetPath;
     }
 
     public struct AudioClip : IComponentData {

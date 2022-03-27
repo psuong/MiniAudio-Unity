@@ -15,8 +15,6 @@ namespace MiniAudio {
             ConstantImports.Initialize();
             DefaultLogInitialization.InitializeLibrary();
             MiniAudioHandler.InitializeLibrary();
-
-            Debug.Log(Application.streamingAssetsPath);
         }
 
         void Start() {

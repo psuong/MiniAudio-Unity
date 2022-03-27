@@ -28,6 +28,10 @@ namespace MiniAudio.Entities.Authoring {
             dstManager.AddComponentData(entity, new FixedAudioStateHistory {
                 Value = audioClip.CurrentState
             });
+
+            dstManager.AddComponentData(entity, new StreamingPathMetadata {
+                IsStreamingAssetPath = IsPathStreamingAssets
+            });
         }
     }
 }

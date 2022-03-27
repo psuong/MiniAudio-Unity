@@ -43,6 +43,8 @@ namespace MiniAudio.Entities.Systems {
                     if (handle != uint.MaxValue) {
                         audioClip.Handle = handle;
                         CommandBuffer.SetComponent(entity, audioClip);
+                        CommandBuffer.RemoveComponent<LoadPath>(entity);
+                        MiniAudioHandler.PlaySound(handle);
                     }
                 }
             }
