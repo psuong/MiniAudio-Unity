@@ -25,7 +25,7 @@ namespace MiniAudio.Entities.Authoring {
             var audioClip = AudioClip.New();
             audioClip.Parameters = Parameters;
             dstManager.AddComponentData(entity, audioClip);
-            dstManager.AddComponentData(entity, new FixedAudioStateHistory {
+            dstManager.AddComponentData(entity, new AudioStateHistory {
                 Value = audioClip.CurrentState
             });
 

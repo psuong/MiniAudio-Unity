@@ -51,7 +51,7 @@ namespace MiniAudio.Entities {
     /// <summary>
     /// Stores the last known state of the AudioClip.
     /// </summary>
-    internal struct FixedAudioStateHistory : IComponentData {
+    internal struct AudioStateHistory : IComponentData {
         public AudioState Value;
     }
 }
