@@ -4,6 +4,7 @@
 #include <vector>
 #include <locale>
 #include <sstream>
+#include <iostream>
 
 extern void safe_debug_log(const wchar_t *message);
 extern void safe_debug_error(const wchar_t *message);
@@ -46,8 +47,24 @@ void PlaySound(uint32_t handle) {
 	engine->play_sound(handle);
 }
 
-void StopSound(uint32_t handle) {
-	engine->stop_sound(handle, true);
+void StopSound(uint32_t handle, bool rewind) {
+	engine->stop_sound(handle, rewind);
+}
+
+void SetSoundVolume(uint32_t handle, float volume) {
+	ma_sound* sound = engine->get_sound(handle);
+
+	if (sound != nullptr) {
+		ma_sound_set_volume(sound, volume);
+	}
+}
+
+bool IsSoundPlaying(uint32_t handle) {
+	if (engine == nullptr) {
+		return false;
+	}
+
+	return engine->is_sound_playing(handle);
 }
 
 AudioEngine& get_engine() {
@@ -168,4 +185,11 @@ bool AudioEngine::is_sound_playing(uint32_t handle) {
 		return ma_sound_is_playing(sound);
 	}
 	return false;
+}
+
+ma_sound* AudioEngine::get_sound(uint32_t handle) {
+	if (handle < this->sounds.size()) {
+		return this->sounds[handle];
+	}
+	return nullptr;
 }

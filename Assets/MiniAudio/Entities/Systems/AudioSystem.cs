@@ -39,7 +39,7 @@ namespace MiniAudio.Entities.Systems {
 
                     char* path = (char*)pathBuffer.GetUnsafeReadOnlyPtr();
 
-                    var handle = MiniAudioHandler.LoadSound(
+                    var handle = MiniAudioHandler.UnsafeLoadSound(
                         path,
                         (uint)pathBuffer.Length,
                         audioClip.Parameters);
@@ -56,7 +56,7 @@ namespace MiniAudio.Entities.Systems {
 #if !UNITY_EDITOR
         [BurstCompile]
 #endif
-        struct PlayAudioJob : IJobEntityBatch {
+        struct ManageAudioJob : IJobEntityBatch {
 
             [ReadOnly]
             public ComponentTypeHandle<AudioStateHistory> AudioStateHistoryType;
@@ -76,26 +76,31 @@ namespace MiniAudio.Entities.Systems {
                 var stateTypes = batchInChunk.GetNativeArray(AudioStateHistoryType);
                 var entities = batchInChunk.GetNativeArray(EntityType);
 
-                if (batchInChunk.DidChange(AudioClipType, LastSystemVersion)) {
-                    for (int i = 0; i < batchInChunk.Count; i++) {
-                        var audioClip = audioClips[i];
-                        var lastState = stateTypes[i].Value;
-                        var entity = entities[i];
+                for (int i = 0; i < batchInChunk.Count; i++) {
+                    var audioClip = audioClips[i];
+                    var lastState = stateTypes[i].Value;
+                    var entity = entities[i];
 
-                        if (lastState != audioClip.CurrentState) {
-                            switch (audioClip.CurrentState) {
-                                case AudioState.Playing:
-                                    MiniAudioHandler.PlaySound(audioClip.Handle);
-                                    break;
-                                case AudioState.Stopped:
-                                    MiniAudioHandler.StopSound(audioClip.Handle);
-                                    break;
-                                case AudioState.Paused:
-                                    break;
-                            }
-                            CommandBuffer.SetComponent(entity, new AudioStateHistory {
-                                Value = audioClip.CurrentState
-                            });
+                    if (lastState != audioClip.CurrentState) {
+                        switch (audioClip.CurrentState) {
+                            case AudioState.Playing:
+                                MiniAudioHandler.PlaySound(audioClip.Handle);
+                                break;
+                            case AudioState.Stopped:
+                                MiniAudioHandler.StopSound(audioClip.Handle, true);
+                                break;
+                            case AudioState.Paused:
+                                MiniAudioHandler.StopSound(audioClip.Handle, false);
+                                break;
+                        }
+                        CommandBuffer.SetComponent(entity, new AudioStateHistory {
+                            Value = audioClip.CurrentState
+                        });
+                    } else if (audioClip.CurrentState == AudioState.Playing) {
+                        bool isPlaying = MiniAudioHandler.IsSoundPlaying(audioClip.Handle);
+                        if (!isPlaying) {
+                            audioClip.CurrentState = AudioState.Stopped;
+                            CommandBuffer.SetComponent(entity, audioClip);
                         }
                     }
                 }
@@ -134,7 +139,7 @@ namespace MiniAudio.Entities.Systems {
                 CommandBuffer = commandBuffer
             }.Run(initializationQuery);
 
-            new PlayAudioJob() {
+            new ManageAudioJob() {
                 AudioStateHistoryType = GetComponentTypeHandle<AudioStateHistory>(true),
                 AudioClipType         = GetComponentTypeHandle<AudioClip>(true),
                 CommandBuffer         = commandBuffer,

@@ -1,7 +1,4 @@
-﻿using Unity.Burst;
-using Unity.Collections;
-
-namespace MiniAudio.Interop {
+﻿namespace MiniAudio.Interop {
 
     public static unsafe class MiniAudioHandler {
 #if UNITY_EDITOR
@@ -10,6 +7,9 @@ namespace MiniAudio.Interop {
         public delegate uint MiniAudioLoadHandler(string path, SoundLoadParameters loadParams);
         public delegate uint UnsafeMiniAudioLoadHandler(char* path, uint sizeInBytes, SoundLoadParameters loadParams);
         public delegate void MiniSoundHandler(uint handle);
+        public delegate void MiniStopSoundHandler(uint handle, bool rewind);
+        public delegate bool MiniSoundStateHandler(uint handle);
+        public delegate void MiniSoundVolumeHandler(uint handle, float volume);
 #endif
 
 #if UNITY_EDITOR
@@ -18,8 +18,10 @@ namespace MiniAudio.Interop {
         static MiniAudioLoadHandler LoadSoundHandler;
         static UnsafeMiniAudioLoadHandler UnsafeLoadSoundHandler;
         static MiniSoundHandler PlaySoundHandler;
-        static MiniSoundHandler StopSoundHandler;
+        static MiniStopSoundHandler StopSoundHandler;
         static MiniAudioEngineHandler ReleaseHandler;
+        static MiniSoundStateHandler SoundPlayingHandler;
+        static MiniSoundVolumeHandler SoundVolumeHandler;
 
         public static void InitializeLibrary() {
             var library = ConstantImports.MiniAudioHandle;
@@ -30,8 +32,10 @@ namespace MiniAudio.Interop {
             LoadSoundHandler = LibraryHandler.GetDelegate<MiniAudioLoadHandler>(library, "LoadSound");
             UnsafeLoadSoundHandler = LibraryHandler.GetDelegate<UnsafeMiniAudioLoadHandler>(library, "UnsafeLoadSound");
             PlaySoundHandler = LibraryHandler.GetDelegate<MiniSoundHandler>(library, "PlaySound");
-            StopSoundHandler = LibraryHandler.GetDelegate<MiniSoundHandler>(library, "StopSound");
+            StopSoundHandler = LibraryHandler.GetDelegate<MiniStopSoundHandler>(library, "StopSound");
             ReleaseHandler = LibraryHandler.GetDelegate<MiniAudioEngineHandler>(library, "ReleaseEngine");
+            SoundPlayingHandler = LibraryHandler.GetDelegate<MiniSoundStateHandler>(library, "IsSoundPlaying");
+            SoundVolumeHandler = LibraryHandler.GetDelegate<MiniSoundVolumeHandler>(library, "SetSoundVolume");
         }
 
         public static bool IsEngineInitialized() {
@@ -52,8 +56,7 @@ namespace MiniAudio.Interop {
             return LoadSoundHandler.Invoke(path, loadParams);
         }
 
-        [NotBurstCompatible]
-        public static uint LoadSound(char* path, uint sizeInBytes, SoundLoadParameters loadParams) {
+        public static uint UnsafeLoadSound(char* path, uint sizeInBytes, SoundLoadParameters loadParams) {
             if (UnsafeLoadSoundHandler == null) {
                 return uint.MaxValue;
             }
@@ -64,8 +67,19 @@ namespace MiniAudio.Interop {
             PlaySoundHandler?.Invoke(handle);
         }
 
-        public static void StopSound(uint handle) {
-            StopSoundHandler?.Invoke(handle);
+        public static void StopSound(uint handle, bool rewind) {
+            StopSoundHandler?.Invoke(handle, rewind);
+        }
+
+        public static void SetSoundVolume(uint handle, float volume) {
+            SoundVolumeHandler?.Invoke(handle, volume);
+        }
+
+        public static bool IsSoundPlaying(uint handle) {
+            if (SoundPlayingHandler == null) {
+                return false;
+            }
+            return SoundPlayingHandler.Invoke(handle);
         }
 
         public static void ReleaseEngine() {

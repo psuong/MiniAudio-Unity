@@ -57,8 +57,9 @@ namespace MiniAudio.Entities.Demo {
             }.Run(audioQuery);
 
             var center = new float2(Screen.width / 2f, Screen.height / 2f);
+            var commandBuffer = commandBufferSystem.CreateCommandBuffer();
 
-            using (var pane = new ImPane("Audio Handles", center, 500)) {
+            using (var pane = new ImPane("Audio Handles", center, 500, ImPaneFlags.Pinned)) {
                 if (pane.IsVisible) {
                     for (int i = 0; i < audioHandles.Length; i++) {
                         var audioHandle = audioHandles[i];
@@ -69,18 +70,26 @@ namespace MiniAudio.Entities.Demo {
                             case AudioState.Stopped:
                                 if (ImGui.Button("Play")) {
                                     audioHandle.CurrentState = AudioState.Playing;
-                                    var commandBuffer = commandBufferSystem.CreateCommandBuffer();
                                     commandBuffer.SetComponent(entities[i], audioHandle);
                                 }
+
                                 break;
                             case AudioState.Playing:
                                 if (ImGui.Button("Stop")) {
                                     audioHandle.CurrentState = AudioState.Stopped;
-                                    var commandBuffer = commandBufferSystem.CreateCommandBuffer();
+                                    commandBuffer.SetComponent(entities[i], audioHandle);
+                                }
+
+                                if (ImGui.Button("Pause")) {
+                                    audioHandle.CurrentState = AudioState.Paused;
                                     commandBuffer.SetComponent(entities[i], audioHandle);
                                 }
                                 break;
                             case AudioState.Paused:
+                                if (ImGui.Button("Resume")) {
+                                    audioHandle.CurrentState = AudioState.Playing;
+                                    commandBuffer.SetComponent(entities[i], audioHandle);
+                                }
                                 break;
                         }
                     }
