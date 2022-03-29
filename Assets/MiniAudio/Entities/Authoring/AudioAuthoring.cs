@@ -26,12 +26,12 @@ namespace MiniAudio.Entities.Authoring {
             audioClip.Parameters = Parameters;
             dstManager.AddComponentData(entity, audioClip);
             dstManager.AddComponentData(entity, new AudioStateHistory {
-                Value = audioClip.CurrentState
+                Value = AudioState.Stopped
             });
 
-            dstManager.AddComponentData(entity, new StreamingPathMetadata {
-                IsStreamingAssetPath = IsPathStreamingAssets
-            });
+            // dstManager.AddComponentData(entity, new StreamingPathMetadata {
+            //     IsStreamingAssetPath = IsPathStreamingAssets
+            // });
         }
     }
 }

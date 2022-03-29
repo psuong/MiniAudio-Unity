@@ -4,11 +4,10 @@ using Unity.Entities;
 
 namespace MiniAudio.Entities {
 
-    [System.Flags]
     public enum AudioState : byte {
-        Stopped = 1 << 0,
-        Playing = 1 << 1,
-        Paused = 1 << 2
+        Stopped,
+        Playing,
+        Paused
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]

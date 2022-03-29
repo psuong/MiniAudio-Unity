@@ -7,7 +7,7 @@ using Unity.Burst;
 #endif
 
 namespace MiniAudio.Entities.Systems {
-    
+
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
     public partial class AudioSystem : SystemBase {
 
@@ -36,6 +36,7 @@ namespace MiniAudio.Entities.Systems {
                     var entity = entities[i];
                     var audioClip = audioClips[i];
                     var pathBuffer = loadParams[i];
+
                     char* path = (char*)pathBuffer.GetUnsafeReadOnlyPtr();
 
                     var handle = MiniAudioHandler.LoadSound(
@@ -63,6 +64,9 @@ namespace MiniAudio.Entities.Systems {
             [ReadOnly]
             public ComponentTypeHandle<AudioClip> AudioClipType;
 
+            [ReadOnly]
+            public EntityTypeHandle EntityType;
+
             public EntityCommandBuffer CommandBuffer;
 
             public uint LastSystemVersion;
@@ -70,26 +74,30 @@ namespace MiniAudio.Entities.Systems {
             public void Execute(ArchetypeChunk batchInChunk, int batchIndex) {
                 var audioClips = batchInChunk.GetNativeArray(AudioClipType);
                 var stateTypes = batchInChunk.GetNativeArray(AudioStateHistoryType);
+                var entities = batchInChunk.GetNativeArray(EntityType);
 
                 if (batchInChunk.DidChange(AudioClipType, LastSystemVersion)) {
-                    UnityEngine.Debug.Log("Changed");
-                }
+                    for (int i = 0; i < batchInChunk.Count; i++) {
+                        var audioClip = audioClips[i];
+                        var lastState = stateTypes[i].Value;
+                        var entity = entities[i];
 
-                return;
-
-                for (int i = 0; i < batchInChunk.Count; i++) {
-                    var audioClip = audioClips[i];
-                    var stateType = stateTypes[i];
-
-                    if (audioClip.CurrentState == AudioState.Playing && 
-                        stateType.Value == AudioState.Stopped && 
-                        audioClip.Handle != uint.MaxValue) {
-
-                        stateType.Value = audioClip.CurrentState;
-                        MiniAudioHandler.PlaySound(audioClip.Handle);
+                        if (lastState != audioClip.CurrentState) {
+                            switch (audioClip.CurrentState) {
+                                case AudioState.Playing:
+                                    MiniAudioHandler.PlaySound(audioClip.Handle);
+                                    break;
+                                case AudioState.Stopped:
+                                    MiniAudioHandler.StopSound(audioClip.Handle);
+                                    break;
+                                case AudioState.Paused:
+                                    break;
+                            }
+                            CommandBuffer.SetComponent(entity, new AudioStateHistory {
+                                Value = audioClip.CurrentState
+                            });
+                        }
                     }
-
-                    stateTypes[i] = stateType;
                 }
             }
         }
@@ -105,12 +113,12 @@ namespace MiniAudio.Entities.Systems {
             });
 
             soundQuery = GetEntityQuery(new EntityQueryDesc() {
-                All = new [] {
+                All = new[] {
                     ComponentType.ReadOnly<AudioClip>(), ComponentType.ReadOnly<AudioStateHistory>()
                 },
-                None = new [] {
-                    ComponentType.ReadOnly<LoadPath>(), 
-                    ComponentType.ReadOnly<StreamingPathMetadata>()
+                None = new[] {
+                    ComponentType.ReadOnly<LoadPath>(),
+                    // ComponentType.ReadOnly<StreamingPathMetadata>()
                 }
             });
 
@@ -120,17 +128,18 @@ namespace MiniAudio.Entities.Systems {
         protected override void OnUpdate() {
             var commandBuffer = commandBufferSystem.CreateCommandBuffer();
             new LoadSoundJob {
-                LoadPathType  = GetBufferTypeHandle<LoadPath>(true),
+                LoadPathType = GetBufferTypeHandle<LoadPath>(true),
                 AudioClipType = GetComponentTypeHandle<AudioClip>(true),
-                EntityType    = GetEntityTypeHandle(),
+                EntityType = GetEntityTypeHandle(),
                 CommandBuffer = commandBuffer
             }.Run(initializationQuery);
 
             new PlayAudioJob() {
                 AudioStateHistoryType = GetComponentTypeHandle<AudioStateHistory>(true),
-                AudioClipType = GetComponentTypeHandle<AudioClip>(true),
-                CommandBuffer = commandBuffer,
-                LastSystemVersion = LastSystemVersion
+                AudioClipType         = GetComponentTypeHandle<AudioClip>(true),
+                CommandBuffer         = commandBuffer,
+                LastSystemVersion     = LastSystemVersion,
+                EntityType            = GetEntityTypeHandle()
             }.Run(soundQuery);
         }
     }
