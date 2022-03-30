@@ -56,6 +56,7 @@ namespace MiniAudio.Entities.Systems {
 #if !UNITY_EDITOR
         [BurstCompile]
 #endif
+        [WithChangeFilter(typeof(AudioClip))]
         struct ManageAudioJob : IJobEntityBatch {
 
             [ReadOnly]
@@ -75,6 +76,16 @@ namespace MiniAudio.Entities.Systems {
                 var audioClips = batchInChunk.GetNativeArray(AudioClipType);
                 var stateTypes = batchInChunk.GetNativeArray(AudioStateHistoryType);
                 var entities = batchInChunk.GetNativeArray(EntityType);
+
+                for (int i = 0; 
+                    i < batchInChunk.Count && batchInChunk.DidChange(AudioClipType, LastSystemVersion); 
+                    i++) {
+                    var audioClip = audioClips[i];
+                    var lastState = stateTypes[i].Value;
+                    var entity = entities[i];
+
+                    MiniAudioHandler.SetSoundVolume(audioClip.Handle, audioClip.Parameters.Volume);
+                }
 
                 for (int i = 0; i < batchInChunk.Count; i++) {
                     var audioClip = audioClips[i];
@@ -141,10 +152,10 @@ namespace MiniAudio.Entities.Systems {
 
             new ManageAudioJob() {
                 AudioStateHistoryType = GetComponentTypeHandle<AudioStateHistory>(true),
-                AudioClipType         = GetComponentTypeHandle<AudioClip>(true),
-                CommandBuffer         = commandBuffer,
-                LastSystemVersion     = LastSystemVersion,
-                EntityType            = GetEntityTypeHandle()
+                AudioClipType = GetComponentTypeHandle<AudioClip>(true),
+                CommandBuffer = commandBuffer,
+                LastSystemVersion = LastSystemVersion,
+                EntityType = GetEntityTypeHandle()
             }.Run(soundQuery);
         }
     }

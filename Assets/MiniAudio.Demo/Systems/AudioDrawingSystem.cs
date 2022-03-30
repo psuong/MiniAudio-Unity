@@ -72,15 +72,19 @@ namespace MiniAudio.Entities.Demo {
                                     audioHandle.CurrentState = AudioState.Playing;
                                     commandBuffer.SetComponent(entities[i], audioHandle);
                                 }
-
                                 break;
                             case AudioState.Playing:
-                                if (ImGui.Button("Stop")) {
-                                    audioHandle.CurrentState = AudioState.Stopped;
+                                var volume = ImGui.Slider("Volume", 0f, 1f, audioHandle.Parameters.Volume);
+
+                                if (volume != audioHandle.Parameters.Volume) {
+                                    audioHandle.Parameters.Volume = volume;
                                     commandBuffer.SetComponent(entities[i], audioHandle);
                                 }
 
-                                if (ImGui.Button("Pause")) {
+                                if (ImGui.Button("Stop")) {
+                                    audioHandle.CurrentState = AudioState.Stopped;
+                                    commandBuffer.SetComponent(entities[i], audioHandle);
+                                } else if (ImGui.Button("Pause")) {
                                     audioHandle.CurrentState = AudioState.Paused;
                                     commandBuffer.SetComponent(entities[i], audioHandle);
                                 }

@@ -2,7 +2,6 @@
 #include "../miniaudio/miniaudio.h"
 #include <cstdlib>
 #include <vector>
-#include <locale>
 #include <sstream>
 #include <iostream>
 
