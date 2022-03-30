@@ -30,6 +30,7 @@ MINIAUDIO_API void PlaySound(uint32_t handle);
 MINIAUDIO_API void StopSound(uint32_t handle, bool rewind);
 MINIAUDIO_API void SetSoundVolume(uint32_t handle, float volume);
 MINIAUDIO_API bool IsSoundPlaying(uint32_t handle);
+MINIAUDIO_API bool IsSoundFinished(uint32_t);
 MINIAUDIO_API void ReleaseEngine();
 }
 
@@ -46,7 +47,8 @@ public:
     void play_sound(uint32_t handle);
     void stop_sound(uint32_t handle, bool rewind);
     bool is_sound_playing(uint32_t handle);
-	ma_sound* get_sound(uint32_t handle);
+	bool is_sound_finished(uint32_t handle);
+	bool try_get_sound(uint32_t handle, ma_sound* sound);
 private:
     ma_engine primary_engine;
     std::vector<ma_sound *> sounds;

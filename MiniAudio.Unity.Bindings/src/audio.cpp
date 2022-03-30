@@ -51,9 +51,9 @@ void StopSound(uint32_t handle, bool rewind) {
 }
 
 void SetSoundVolume(uint32_t handle, float volume) {
-	ma_sound* sound = engine->get_sound(handle);
+	ma_sound* sound;
 
-	if (sound != nullptr) {
+	if (engine->try_get_sound(handle, sound)) {
 		ma_sound_set_volume(sound, volume);
 	}
 }
@@ -64,6 +64,12 @@ bool IsSoundPlaying(uint32_t handle) {
 	}
 
 	return engine->is_sound_playing(handle);
+}
+
+bool IsSoundFInished(uint32_t handle) {
+	if (engine == nullptr) {
+		return false;
+	}
 }
 
 AudioEngine& get_engine() {
@@ -161,17 +167,16 @@ void AudioEngine::release_sound(uint32_t handle) {
 }
 
 void AudioEngine::play_sound(uint32_t handle) {
-	if (handle < this->sounds.size()) {
-		ma_sound* sound = this->sounds[handle];
+	ma_sound* sound = nullptr;
+	if (this->try_get_sound(handle, sound)) {
 		ma_sound_start(sound);
 	}
 }
 
 void AudioEngine::stop_sound(uint32_t handle, bool rewind) {
-	if (handle < this->sounds.size()) {
-		ma_sound* sound = this->sounds[handle];
+	ma_sound* sound = nullptr;
+	if (this->try_get_sound(handle, sound)) {
 		ma_sound_stop(sound);
-
 		if (rewind) {
 			ma_sound_seek_to_pcm_frame(sound, 0);
 		}
@@ -179,16 +184,27 @@ void AudioEngine::stop_sound(uint32_t handle, bool rewind) {
 }
 
 bool AudioEngine::is_sound_playing(uint32_t handle) {
-	if (handle < this->sounds.size()) {
-		ma_sound* sound = this->sounds[handle];
+	ma_sound *sound = nullptr;
+	if (this->try_get_sound(handle, sound)) {
 		return ma_sound_is_playing(sound);
 	}
 	return false;
 }
 
-ma_sound* AudioEngine::get_sound(uint32_t handle) {
-	if (handle < this->sounds.size()) {
-		return this->sounds[handle];
+
+bool AudioEngine::is_sound_finished(uint32_t handle) {
+	ma_sound *sound = nullptr;
+	if (this->try_get_sound(handle, sound)) {
+		return ma_sound_at_end(sound);
 	}
-	return nullptr;
+	return false;
+}
+
+bool AudioEngine::try_get_sound(uint32_t handle, ma_sound* sound) {
+	if (handle < this->sounds.size()) {
+		sound = this->sounds[handle];
+		return true;
+	}
+	sound = nullptr;
+	return false;
 }
