@@ -20,19 +20,19 @@ void InitializeLogger(log_info_ptr log_ptr, log_warn_ptr warn_ptr, log_error_ptr
 	}
 }
 
-void safe_debug_log(const wchar_t* message) {
+void safe_debug_log(const char* message) {
 	if (debug_log != nullptr) {
 		debug_log(message);
 	}
 }
 
-void safe_debug_warn(const wchar_t* message) {
+void safe_debug_warn(const char* message) {
 	if (debug_warn != nullptr) {
 		debug_warn(message);
 	}
 }
 
-void safe_debug_error(const wchar_t* message) {
+void safe_debug_error(const char* message) {
 	if (debug_error != nullptr) {
 		debug_error(message);
 	}

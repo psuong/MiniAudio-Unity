@@ -56,8 +56,7 @@ namespace MiniAudio.Entities.Systems {
 #if !UNITY_EDITOR
         [BurstCompile]
 #endif
-        [WithChangeFilter(typeof(AudioClip))]
-        struct ManageAudioJob : IJobEntityBatch {
+        struct StopSoundJob : IJobEntityBatch {
 
             [ReadOnly]
             public ComponentTypeHandle<AudioStateHistory> AudioStateHistoryType;
@@ -70,27 +69,63 @@ namespace MiniAudio.Entities.Systems {
 
             public EntityCommandBuffer CommandBuffer;
 
-            public uint LastSystemVersion;
-
             public void Execute(ArchetypeChunk batchInChunk, int batchIndex) {
                 var audioClips = batchInChunk.GetNativeArray(AudioClipType);
                 var stateTypes = batchInChunk.GetNativeArray(AudioStateHistoryType);
                 var entities = batchInChunk.GetNativeArray(EntityType);
 
-                for (int i = 0; 
-                    i < batchInChunk.Count && batchInChunk.DidChange(AudioClipType, LastSystemVersion); 
-                    i++) {
+                for (int i = 0; i < batchInChunk.Count; i++) {
                     var audioClip = audioClips[i];
                     var lastState = stateTypes[i].Value;
                     var entity = entities[i];
 
-                    MiniAudioHandler.SetSoundVolume(audioClip.Handle, audioClip.Parameters.Volume);
+                    // This should only check if the entity's sound has stopped playing.
+                    switch (audioClip.CurrentState) {
+                        case AudioState.Playing:
+                            if (MiniAudioHandler.IsSoundFinished(audioClip.Handle)) {
+                                audioClip.CurrentState = AudioState.Stopped;
+                                CommandBuffer.SetComponent(entity, audioClip);
+                            }
+                            break;
+                    }
                 }
+            }
+        }
+
+#if !UNITY_EDITOR
+        [BurstCompile]
+#endif
+        [WithChangeFilter(typeof(AudioClip))]
+        struct ManageAudioStateJob : IJobEntityBatch {
+
+            [ReadOnly]
+            public ComponentTypeHandle<AudioStateHistory> AudioStateHistoryType;
+
+            [ReadOnly]
+            public ComponentTypeHandle<AudioClip> AudioClipType;
+
+            [ReadOnly]
+            public EntityTypeHandle EntityType;
+
+            public uint LastSystemVersion;
+
+            public EntityCommandBuffer CommandBuffer;
+
+            public void Execute(ArchetypeChunk batchInChunk, int batchIndex) {
+                if (!batchInChunk.DidChange(AudioClipType, LastSystemVersion)) {
+                    return;
+                }
+                var audioClips = batchInChunk.GetNativeArray(AudioClipType);
+                var stateTypes = batchInChunk.GetNativeArray(AudioStateHistoryType);
+                var entities = batchInChunk.GetNativeArray(EntityType);
 
                 for (int i = 0; i < batchInChunk.Count; i++) {
                     var audioClip = audioClips[i];
                     var lastState = stateTypes[i].Value;
                     var entity = entities[i];
+
+                    MiniAudioHandler.SetSoundVolume(audioClip.Handle, audioClip.Parameters.Volume);
+                    // UnityEngine.Debug.Log(audioClip.Parameters.Volume);
 
                     if (lastState != audioClip.CurrentState) {
                         switch (audioClip.CurrentState) {
@@ -107,12 +142,6 @@ namespace MiniAudio.Entities.Systems {
                         CommandBuffer.SetComponent(entity, new AudioStateHistory {
                             Value = audioClip.CurrentState
                         });
-                    } else if (audioClip.CurrentState == AudioState.Playing) {
-                        bool isPlaying = MiniAudioHandler.IsSoundPlaying(audioClip.Handle);
-                        if (!isPlaying) {
-                            audioClip.CurrentState = AudioState.Stopped;
-                            CommandBuffer.SetComponent(entity, audioClip);
-                        }
                     }
                 }
             }
@@ -150,7 +179,14 @@ namespace MiniAudio.Entities.Systems {
                 CommandBuffer = commandBuffer
             }.Run(initializationQuery);
 
-            new ManageAudioJob() {
+            new StopSoundJob {
+                AudioStateHistoryType = GetComponentTypeHandle<AudioStateHistory>(true),
+                AudioClipType = GetComponentTypeHandle<AudioClip>(true),
+                CommandBuffer = commandBuffer,
+                EntityType = GetEntityTypeHandle()
+            }.Run(soundQuery);
+
+            new ManageAudioStateJob() {
                 AudioStateHistoryType = GetComponentTypeHandle<AudioStateHistory>(true),
                 AudioClipType = GetComponentTypeHandle<AudioClip>(true),
                 CommandBuffer = commandBuffer,

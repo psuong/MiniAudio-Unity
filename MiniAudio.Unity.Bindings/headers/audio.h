@@ -48,7 +48,7 @@ public:
     void stop_sound(uint32_t handle, bool rewind);
     bool is_sound_playing(uint32_t handle);
 	bool is_sound_finished(uint32_t handle);
-	bool try_get_sound(uint32_t handle, ma_sound* sound);
+	bool try_get_sound(uint32_t handle, ma_sound*& sound);
 private:
     ma_engine primary_engine;
     std::vector<ma_sound *> sounds;

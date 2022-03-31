@@ -21,6 +21,7 @@
         static MiniStopSoundHandler StopSoundHandler;
         static MiniAudioEngineHandler ReleaseHandler;
         static MiniSoundStateHandler SoundPlayingHandler;
+        static MiniSoundStateHandler SoundFinishedHandler;
         static MiniSoundVolumeHandler SoundVolumeHandler;
 
         public static void InitializeLibrary() {
@@ -35,6 +36,7 @@
             StopSoundHandler = LibraryHandler.GetDelegate<MiniStopSoundHandler>(library, "StopSound");
             ReleaseHandler = LibraryHandler.GetDelegate<MiniAudioEngineHandler>(library, "ReleaseEngine");
             SoundPlayingHandler = LibraryHandler.GetDelegate<MiniSoundStateHandler>(library, "IsSoundPlaying");
+            SoundFinishedHandler = LibraryHandler.GetDelegate<MiniSoundStateHandler>(library, "IsSoundFinished");
             SoundVolumeHandler = LibraryHandler.GetDelegate<MiniSoundVolumeHandler>(library, "SetSoundVolume");
         }
 
@@ -80,6 +82,13 @@
                 return false;
             }
             return SoundPlayingHandler.Invoke(handle);
+        }
+
+        public static bool IsSoundFinished(uint handle) {
+            if (SoundFinishedHandler == null) {
+                return false;
+            }
+            return SoundFinishedHandler.Invoke(handle);
         }
 
         public static void ReleaseEngine() {

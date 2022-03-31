@@ -5,20 +5,20 @@
 #include <sstream>
 #include <iostream>
 
-extern void safe_debug_log(const wchar_t *message);
-extern void safe_debug_error(const wchar_t *message);
+extern void safe_debug_log(const char* message);
+extern void safe_debug_error(const char* message);
 
 static AudioEngine* engine;
 
 void InitializeEngine() {
 	if (engine != nullptr) {
-		safe_debug_error(reinterpret_cast<const wchar_t *>("You are trying to reinitialize the AudioEngine!"));
+		safe_debug_error("You are trying to reinitialize the AudioEngine!");
 		return;
 	}
 	engine = new AudioEngine();
 }
 
-bool IsEngineInitialized() {
+bool inline IsEngineInitialized() {
 	return engine != nullptr;
 }
 
@@ -36,7 +36,6 @@ uint32_t LoadSound(const wchar_t* path, SoundLoadParameters loadParams) {
 uint32_t UnsafeLoadSound(const wchar_t* path, uint32_t size, SoundLoadParameters load_params) {
 	std::wstringstream buffer;
 	buffer.write(path, size);
-
 	std::wstring wide_path = buffer.str();
 
 	return engine->request_sound(wide_path.c_str(), load_params);
@@ -47,29 +46,24 @@ void PlaySound(uint32_t handle) {
 }
 
 void StopSound(uint32_t handle, bool rewind) {
-	engine->stop_sound(handle, rewind);
+	if (engine != nullptr) {
+		engine->stop_sound(handle, rewind);
+	}
 }
 
 void SetSoundVolume(uint32_t handle, float volume) {
-	ma_sound* sound;
-
+	ma_sound* sound = nullptr;
 	if (engine->try_get_sound(handle, sound)) {
 		ma_sound_set_volume(sound, volume);
 	}
 }
 
 bool IsSoundPlaying(uint32_t handle) {
-	if (engine == nullptr) {
-		return false;
-	}
-
 	return engine->is_sound_playing(handle);
 }
 
-bool IsSoundFInished(uint32_t handle) {
-	if (engine == nullptr) {
-		return false;
-	}
+bool IsSoundFinished(uint32_t handle) {
+	return engine->is_sound_finished(handle);
 }
 
 AudioEngine& get_engine() {
@@ -78,7 +72,7 @@ AudioEngine& get_engine() {
 
 AudioEngine::AudioEngine() {
 	if (MA_SUCCESS != ma_engine_init(nullptr, &this->primary_engine)) {
-		safe_debug_error(reinterpret_cast<const wchar_t *>("AudioEngine failed to initialize!"));
+		safe_debug_error("AudioEngine failed to initialize!");
 		return;
 	}
 	this->sounds = std::vector<ma_sound *>();
@@ -96,7 +90,7 @@ AudioEngine::~AudioEngine() {
 		free(sound);
 	}
 	ma_engine_uninit(&this->primary_engine);
-	safe_debug_log(reinterpret_cast<const wchar_t *>("Successfully released AudioEngine."));
+	safe_debug_log("Successfully released AudioEngine.");
 }
 
 size_t AudioEngine::free_sound_count() {
@@ -167,15 +161,15 @@ void AudioEngine::release_sound(uint32_t handle) {
 }
 
 void AudioEngine::play_sound(uint32_t handle) {
-	ma_sound* sound = nullptr;
-	if (this->try_get_sound(handle, sound)) {
+	if (handle < this->sounds.size()) {
+		ma_sound* sound = this->sounds[handle];
 		ma_sound_start(sound);
 	}
 }
 
 void AudioEngine::stop_sound(uint32_t handle, bool rewind) {
-	ma_sound* sound = nullptr;
-	if (this->try_get_sound(handle, sound)) {
+	if (handle < this->sounds.size()) {
+		ma_sound* sound = this->sounds[handle];
 		ma_sound_stop(sound);
 		if (rewind) {
 			ma_sound_seek_to_pcm_frame(sound, 0);
@@ -184,23 +178,22 @@ void AudioEngine::stop_sound(uint32_t handle, bool rewind) {
 }
 
 bool AudioEngine::is_sound_playing(uint32_t handle) {
-	ma_sound *sound = nullptr;
-	if (this->try_get_sound(handle, sound)) {
+	if (handle < this->sounds.size()) {
+		ma_sound* sound = this->sounds[handle];
 		return ma_sound_is_playing(sound);
 	}
 	return false;
 }
 
-
 bool AudioEngine::is_sound_finished(uint32_t handle) {
-	ma_sound *sound = nullptr;
-	if (this->try_get_sound(handle, sound)) {
+	if (handle < this->sounds.size()) {
+		ma_sound* sound = sounds[handle];
 		return ma_sound_at_end(sound);
 	}
 	return false;
 }
 
-bool AudioEngine::try_get_sound(uint32_t handle, ma_sound* sound) {
+bool AudioEngine::try_get_sound(uint32_t handle, ma_sound*& sound) {
 	if (handle < this->sounds.size()) {
 		sound = this->sounds[handle];
 		return true;
