@@ -1,18 +1,17 @@
 ﻿namespace MiniAudio.Interop {
 
     public static unsafe class MiniAudioHandler {
-#if UNITY_EDITOR
+        #region Delegates
         public delegate bool MiniEngineInitializationCheckHandler();
         public delegate void MiniAudioEngineHandler();
         public delegate uint MiniAudioLoadHandler(string path, SoundLoadParameters loadParams);
-        public delegate uint UnsafeMiniAudioLoadHandler(char* path, uint sizeInBytes, SoundLoadParameters loadParams);
         public delegate void MiniSoundHandler(uint handle);
         public delegate void MiniStopSoundHandler(uint handle, bool rewind);
         public delegate bool MiniSoundStateHandler(uint handle);
         public delegate void MiniSoundVolumeHandler(uint handle, float volume);
-#endif
+        public delegate uint UnsafeMiniAudioLoadHandler(char* path, uint sizeInBytes, SoundLoadParameters loadParams);
+        #endregion
 
-#if UNITY_EDITOR
         static MiniEngineInitializationCheckHandler InitializationCheckHandler;
         static MiniAudioEngineHandler InitializationHandler;
         static MiniAudioLoadHandler LoadSoundHandler;
@@ -94,6 +93,5 @@
         public static void ReleaseEngine() {
             ReleaseHandler?.Invoke();
         }
-#endif
     }
 }

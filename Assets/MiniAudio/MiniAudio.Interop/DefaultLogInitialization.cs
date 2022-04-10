@@ -6,17 +6,12 @@ namespace MiniAudio.Interop {
 
     public static class DefaultLogInitialization {
 
-#if UNITY_EDITOR
         public delegate void LoggerInitializationHandler(IntPtr log, IntPtr warn, IntPtr error);
         static LoggerInitializationHandler InitHandler;
 
         static void InitializeLogger(IntPtr log, IntPtr warn, IntPtr error) {
             InitHandler?.Invoke(log, warn, error);
         }
-#else
-        [DllImport("MiniAudio_Unity_Bindings")]
-        static extern void InitializeLogger(IntPtr log, IntPtr warn, IntPtr error);
-#endif
 
         static LogHandler DebugLogHandler;
         static LogHandler DebugWarnHandler;
@@ -26,7 +21,6 @@ namespace MiniAudio.Interop {
         static IntPtr warnFunctionPtr;
         static IntPtr errorFunctionPtr;
         public static void InitializeLibrary() {
-#if UNITY_EDITOR
             InitHandler = LibraryHandler.GetDelegate<LoggerInitializationHandler>(ConstantImports.MiniAudioHandle, "InitializeLogger");
             DebugLogHandler = NativeDebug.Log;
             DebugWarnHandler = NativeDebug.Warn;
@@ -36,7 +30,6 @@ namespace MiniAudio.Interop {
             warnFunctionPtr = Marshal.GetFunctionPointerForDelegate(DebugWarnHandler);
             errorFunctionPtr = Marshal.GetFunctionPointerForDelegate(DebugErrorHandler);
             InitializeLogger(logFunctionPtr, warnFunctionPtr, errorFunctionPtr);
-#endif
         }
     }
 }

@@ -1,11 +1,10 @@
-﻿using MiniAudio.Interop;
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace MiniAudio.Interop {
 
     public static class ConstantImports {
-#if UNITY_EDITOR
+
         public const string MiniAudioLibPath = "/MiniAudio/Plugins/MiniAudio_Unity_Bindings.dll";
         public static IntPtr MiniAudioHandle => LibraryHandleInternal;
 
@@ -18,6 +17,5 @@ namespace MiniAudio.Interop {
         public static void Release() {
             LibraryHandler.ReleaseLibrary(MiniAudioHandle);
         }
-#endif
     }
 }

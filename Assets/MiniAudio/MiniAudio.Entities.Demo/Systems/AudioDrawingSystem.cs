@@ -6,7 +6,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Screen = UnityEngine.Screen;
 
-namespace MiniAudio.Entities.Demo {
+namespace MiniAudio.Entities {
     
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public partial class AudioDrawingSystem : SystemBase {
@@ -17,7 +17,7 @@ namespace MiniAudio.Entities.Demo {
         partial struct AudioQueryJob : IJobEntity {
 
             [WriteOnly] 
-            public NativeList<AudioClip> Clips;
+            public NativeList<MiniAudio.Entities.AudioClip> Clips;
 
             [WriteOnly]
             public NativeList<Entity> AssociatedEntities;
