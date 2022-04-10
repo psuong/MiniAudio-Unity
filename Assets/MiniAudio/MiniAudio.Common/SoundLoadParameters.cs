@@ -1,10 +1,9 @@
 using System;
-using Unity.Entities;
 
 namespace MiniAudio.Interop {
 
     [Serializable]
-    public struct SoundLoadParameters : IComponentData {
+    public struct SoundLoadParameters {
 
         /// <summary>
         /// Is the AudioClip looping?

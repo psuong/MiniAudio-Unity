@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace MiniAudio.Logging {
+namespace MiniAudio.Interop {
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void LogHandler(string message);

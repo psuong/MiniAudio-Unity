@@ -2,7 +2,7 @@ using MiniAudio.Interop;
 using System;
 using System.Runtime.InteropServices;
 
-namespace MiniAudio.Logging {
+namespace MiniAudio.Interop {
 
     public static class DefaultLogInitialization {
 

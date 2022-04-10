@@ -1,11 +1,10 @@
 using System.Text;
 using InitialPrefabs.NimGui;
-using MiniAudio.Entities;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
+using Screen = UnityEngine.Screen;
 
 namespace MiniAudio.Entities.Demo {
     
