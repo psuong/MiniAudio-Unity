@@ -42,6 +42,10 @@ namespace MiniAudio.Entities {
         }
 
         protected override void OnUpdate() {
+            if (ImGui.Button("Quit")) {
+                UnityEngine.Application.Quit();
+            }
+
             var audioHandles = new NativeList<AudioClip>(
                 audioQuery.CalculateEntityCount(), 
                 Allocator.TempJob);
