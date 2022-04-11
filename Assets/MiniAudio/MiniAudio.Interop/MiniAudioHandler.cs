@@ -1,6 +1,9 @@
-﻿namespace MiniAudio.Interop {
+﻿using System.Runtime.InteropServices;
+
+namespace MiniAudio.Interop {
 
     public static unsafe class MiniAudioHandler {
+#if UNITY_EDITOR_WIN && MINIAUDIO_DEVELOP
         #region Delegates
         public delegate bool MiniEngineInitializationCheckHandler();
         public delegate void MiniAudioEngineHandler();
@@ -93,5 +96,36 @@
         public static void ReleaseEngine() {
             ReleaseHandler?.Invoke();
         }
+#else
+        [DllImport("MiniAudio_Unity_Bindings.dll")]
+        public static extern bool IsEngineInitialized();
+
+        [DllImport("MiniAudio_Unity_Bindings.dll")]
+        public static extern void InitializeEngine();
+
+        [DllImport("MiniAudio_Unity_Bindings.dll")]
+        public static extern uint LoadSound(string path, SoundLoadParameters loadParams);
+
+        [DllImport("MiniAudio_Unity_Bindings.dll")]
+        public static extern uint UnsafeLoadSound(char* path, uint sizeInBytes, SoundLoadParameters loadParams);
+
+        [DllImport("MiniAudio_Unity_Bindings.dll")]
+        public static extern void PlaySound(uint handle);
+
+        [DllImport("MiniAudio_Unity_Bindings.dll")]
+        public static extern void StopSound(uint handle, bool rewind);
+
+        [DllImport("MiniAudio_Unity_Bindings.dll")]
+        public static extern void SetSoundVolume(uint handle, float volume);
+
+        [DllImport("MiniAudio_Unity_Bindings.dll")]
+        public static extern bool IsSoundPlaying(uint handle);
+
+        [DllImport("MiniAudio_Unity_Bindings.dll")]
+        public static extern bool IsSoundFinished(uint handle);
+
+        [DllImport("MiniAudio_Unity_Bindings.dll")]
+        public static extern void ReleaseEngine();
+#endif
     }
 }

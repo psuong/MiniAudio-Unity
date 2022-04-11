@@ -11,11 +11,15 @@ namespace MiniAudio.Interop {
         static IntPtr LibraryHandleInternal;
 
         public static void Initialize() {
+#if UNITY_EDITOR_WIN
             LibraryHandleInternal = LibraryHandler.InitializeLibrary(Application.dataPath + MiniAudioLibPath);
+#endif
         }
 
         public static void Release() {
+#if UNITY_EDITOR_WIN
             LibraryHandler.ReleaseLibrary(MiniAudioHandle);
+#endif
         }
     }
 }

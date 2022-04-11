@@ -10,6 +10,7 @@ namespace MiniAudio.Interop.Tests {
             ConstantImports.Initialize();
         }
 
+#if MINIAUDIO_DEVELOP
         [Test]
         public void LoadSoundBinding() {
             var actual = LibraryHandler.GetDelegate<MiniAudioHandler.MiniAudioLoadHandler>(
@@ -23,6 +24,7 @@ namespace MiniAudio.Interop.Tests {
                 ConstantImports.MiniAudioHandle, "UnsafeLoadSound");
             Assert.AreNotEqual(IntPtr.Zero, actual);
         }
+#endif
 
         [TearDown]
         public void TearDown() {

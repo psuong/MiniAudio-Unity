@@ -13,24 +13,13 @@ namespace MiniAudio {
         void OnEnable() {
             ConstantImports.Initialize();
             DefaultLogInitialization.InitializeLibrary();
+#if UNITY_EDITOR_WIN && MINIAUDIO_DEVELOP
             MiniAudioHandler.InitializeLibrary();
+#endif
         }
 
         void Start() {
             MiniAudioHandler.InitializeEngine();
-            // handle = MiniAudioHandler.LoadSound(Path2, new SoundLoadParameters {
-            //     Volume = 1.0f
-            // });
-        }
-
-        void Update() {
-            // if (Input.GetKeyUp(KeyCode.A)) {
-            //     MiniAudioHandler.PlaySound(handle);
-            // }
-
-            // if (Input.GetKeyUp(KeyCode.Space)) {
-            //     MiniAudioHandler.StopSound(handle);
-            // }
         }
 
         void OnDisable() {
