@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace MiniAudio.Interop {
 
@@ -12,7 +13,7 @@ namespace MiniAudio.Interop {
         public delegate void MiniStopSoundHandler(uint handle, bool rewind);
         public delegate bool MiniSoundStateHandler(uint handle);
         public delegate void MiniSoundVolumeHandler(uint handle, float volume);
-        public delegate uint UnsafeMiniAudioLoadHandler(char* path, uint sizeInBytes, SoundLoadParameters loadParams);
+        public delegate uint UnsafeMiniAudioLoadHandler(IntPtr path, uint sizeInBytes, IntPtr loadParams);
         #endregion
 
         static MiniEngineInitializationCheckHandler InitializationCheckHandler;
@@ -60,7 +61,7 @@ namespace MiniAudio.Interop {
             return LoadSoundHandler.Invoke(path, loadParams);
         }
 
-        public static uint UnsafeLoadSound(char* path, uint sizeInBytes, SoundLoadParameters loadParams) {
+        public static uint UnsafeLoadSound(IntPtr, uint sizeInBytes, IntPtr loadParams) {
             if (UnsafeLoadSoundHandler == null) {
                 return uint.MaxValue;
             }
@@ -107,7 +108,7 @@ namespace MiniAudio.Interop {
         public static extern uint LoadSound(string path, SoundLoadParameters loadParams);
 
         [DllImport("MiniAudio_Unity_Bindings.dll")]
-        public static extern uint UnsafeLoadSound(char* path, uint sizeInBytes, SoundLoadParameters loadParams);
+        public static extern uint UnsafeLoadSound(IntPtr path, uint sizeInBytes, IntPtr loadParameters);
 
         [DllImport("MiniAudio_Unity_Bindings.dll")]
         public static extern void PlaySound(uint handle);

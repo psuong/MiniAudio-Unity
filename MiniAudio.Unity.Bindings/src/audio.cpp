@@ -33,12 +33,13 @@ uint32_t LoadSound(const wchar_t* path, SoundLoadParameters loadParams) {
 	return engine->request_sound(path, loadParams);
 }
 
-uint32_t UnsafeLoadSound(const wchar_t* path, uint32_t size, SoundLoadParameters load_params) {
+uint32_t UnsafeLoadSound(const wchar_t* path, uint32_t size, void* loadParameters) {
 	std::wstringstream buffer;
 	buffer.write(path, size);
 	std::wstring wide_path = buffer.str();
 
-	return engine->request_sound(wide_path.c_str(), load_params);
+	SoundLoadParameters* load_params = (SoundLoadParameters*)loadParameters;
+	return engine->request_sound(wide_path.c_str(), *load_params);
 }
 
 void PlaySound(uint32_t handle) {

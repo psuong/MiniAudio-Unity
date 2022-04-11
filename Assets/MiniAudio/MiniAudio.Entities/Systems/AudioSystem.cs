@@ -1,3 +1,4 @@
+using System;
 using MiniAudio.Interop;
 using Unity.Collections;
 using Unity.Entities;
@@ -38,11 +39,12 @@ namespace MiniAudio.Entities.Systems {
                     var pathBuffer = loadParams[i];
 
                     char* path = (char*)pathBuffer.GetUnsafeReadOnlyPtr();
+                    SoundLoadParameters* loadParameters = &audioClip.Parameters;
 
                     var handle = MiniAudioHandler.UnsafeLoadSound(
-                        path,
+                        new IntPtr(path),
                         (uint)pathBuffer.Length,
-                        audioClip.Parameters);
+                        new IntPtr(loadParameters));
 
                     if (handle != uint.MaxValue) {
                         audioClip.Handle = handle;
