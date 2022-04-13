@@ -61,7 +61,7 @@ namespace MiniAudio.Interop {
             return LoadSoundHandler.Invoke(path, loadParams);
         }
 
-        public static uint UnsafeLoadSound(IntPtr, uint sizeInBytes, IntPtr loadParams) {
+        public static uint UnsafeLoadSound(IntPtr path, uint sizeInBytes, IntPtr loadParams) {
             if (UnsafeLoadSoundHandler == null) {
                 return uint.MaxValue;
             }

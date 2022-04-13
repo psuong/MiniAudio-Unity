@@ -9,15 +9,6 @@ namespace MiniAudio.Interop {
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void LogHandler(string message);
 
-#if UNITY_EDITOR_WIN && MINIAUDIO_DEVELOP
-        public delegate void LoggerInitializationHandler(IntPtr log, IntPtr warn, IntPtr error);
-        static LoggerInitializationHandler InitHandler;
-
-        static void InitializeLogger(IntPtr log, IntPtr warn, IntPtr error) {
-            InitHandler?.Invoke(log, warn, error);
-        }
-#endif
-
         static LogHandler DebugLogHandler;
         static LogHandler DebugWarnHandler;
         static LogHandler DebugErrorHandler;
@@ -25,13 +16,26 @@ namespace MiniAudio.Interop {
         static IntPtr logFunctionPtr;
         static IntPtr warnFunctionPtr;
         static IntPtr errorFunctionPtr;
+
+        static void Log(string msg) {
+            Debug.Log(msg);
+        }
+
+        static void Warn(string warn) {
+            Debug.LogWarning(warn);
+        }
+
+        static void Error(string error) {
+            Debug.LogError(error);
+        }
+
         public static void InitializeLibrary() {
 #if UNITY_EDITOR_WIN && MINIAUDIO_DEVELOP
             InitHandler = LibraryHandler.GetDelegate<LoggerInitializationHandler>(ConstantImports.MiniAudioHandle, "InitializeLogger");
 #endif
-            DebugLogHandler = Debug.Log;
-            DebugWarnHandler = Debug.LogWarning;
-            DebugErrorHandler = Debug.LogError;
+            DebugLogHandler = Log;
+            DebugWarnHandler = Warn;
+            DebugErrorHandler = Error;
 
             logFunctionPtr = Marshal.GetFunctionPointerForDelegate(DebugLogHandler);
             warnFunctionPtr = Marshal.GetFunctionPointerForDelegate(DebugWarnHandler);
@@ -40,6 +44,12 @@ namespace MiniAudio.Interop {
         }
 
 #if UNITY_EDITOR_WIN && MINIAUDIO_DEVELOP
+        public delegate void LoggerInitializationHandler(IntPtr log, IntPtr warn, IntPtr error);
+        static LoggerInitializationHandler InitHandler;
+
+        static void InitializeLogger(IntPtr log, IntPtr warn, IntPtr error) {
+            InitHandler?.Invoke(log, warn, error);
+        }
 #else
         [DllImport("MiniAudio_Unity_Bindings.dll")]
         static extern void InitializeLogger(IntPtr log, IntPtr warn, IntPtr error);
