@@ -166,10 +166,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47387068cc9014847935356a35ed75b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsPathStreamingAssets: 0
-  Path: "D:/Music/\xA1/Stronghold.mp3"
+  IsPathStreamingAssets: 1
+  Path: Audio/Stronghold.mp3
   Parameters:
-    IsLooping: 0
+    IsLooping: 1
     Volume: 1
     StartTime: 0
     EndTime: 0

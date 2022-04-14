@@ -15,9 +15,7 @@ namespace MiniAudio.Entities {
         public char Value;
     }
 
-    public struct StreamingPathMetadata : IComponentData {
-        public bool IsStreamingAssetPath;
-    }
+    public struct StreamingPathTag : IComponentData { }
 
     public struct AudioClip : IComponentData {
 

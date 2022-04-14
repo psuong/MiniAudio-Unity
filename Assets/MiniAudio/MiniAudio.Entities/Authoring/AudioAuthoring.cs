@@ -16,10 +16,14 @@ namespace MiniAudio.Entities.Authoring {
                 return;
             }
 
+            Debug.Log($"{Application.streamingAssetsPath}/{Path}");
+
+            var path = IsPathStreamingAssets ? $"/{Path}" : Path;
+
             var buffer = dstManager.AddBuffer<LoadPath>(entity);
-            buffer.ResizeUninitialized(Path.Length);
-            fixed (char* head = Path) {
-                UnsafeUtility.MemCpy(buffer.GetUnsafePtr(), head, sizeof(char) * Path.Length);
+            buffer.ResizeUninitialized(path.Length);
+            fixed (char* head = path) {
+                UnsafeUtility.MemCpy(buffer.GetUnsafePtr(), head, sizeof(char) * path.Length);
             }
 
             var audioClip = AudioClip.New();
@@ -29,9 +33,9 @@ namespace MiniAudio.Entities.Authoring {
                 Value = AudioState.Stopped
             });
 
-            // dstManager.AddComponentData(entity, new StreamingPathMetadata {
-            //     IsStreamingAssetPath = IsPathStreamingAssets
-            // });
+            if (IsPathStreamingAssets) {
+                dstManager.AddComponentData(entity, new StreamingPathTag { });
+            }
         }
     }
 }

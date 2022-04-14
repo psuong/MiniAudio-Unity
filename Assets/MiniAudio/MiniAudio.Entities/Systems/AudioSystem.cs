@@ -1,7 +1,9 @@
 using System;
 using MiniAudio.Interop;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using UnityEngine;
 
 #if !UNITY_EDITOR
 using Unity.Burst;
@@ -26,30 +28,63 @@ namespace MiniAudio.Entities.Systems {
             [ReadOnly]
             public ComponentTypeHandle<AudioClip> AudioClipType;
 
+            [ReadOnly]
+            public ComponentTypeHandle<StreamingPathTag> StreamingPathType;
+
             public EntityCommandBuffer CommandBuffer;
+
+            [ReadOnly]
+            public NativeArray<char> StreamingPath;
 
             public void Execute(ArchetypeChunk batchInChunk, int batchIndex) {
                 var loadParams = batchInChunk.GetBufferAccessor(LoadPathType);
                 var audioClips = batchInChunk.GetNativeArray(AudioClipType);
                 var entities = batchInChunk.GetNativeArray(EntityType);
 
-                for (int i = 0; i < batchInChunk.Count; i++) {
-                    var entity = entities[i];
-                    var audioClip = audioClips[i];
-                    var pathBuffer = loadParams[i];
+                if (batchInChunk.Has(StreamingPathType)) {
+                    var fullPath = new NativeList<char>(StreamingPath.Length, Allocator.Temp);
+                    for (int i = 0; i < batchInChunk.Count; i++) {
+                        var entity = entities[i];
+                        var audioClip = audioClips[i];
+                        var pathBuffer = loadParams[i];
 
-                    char* path = (char*)pathBuffer.GetUnsafeReadOnlyPtr();
-                    SoundLoadParameters* loadParameters = &audioClip.Parameters;
+                        fullPath.AddRangeNoResize(StreamingPath.GetUnsafeReadOnlyPtr(), StreamingPath.Length);
+                        char* path = (char*)pathBuffer.GetUnsafeReadOnlyPtr();
+                        fullPath.AddRange(path, pathBuffer.Length);
 
-                    var handle = MiniAudioHandler.UnsafeLoadSound(
-                        new IntPtr(path),
-                        (uint)pathBuffer.Length,
-                        new IntPtr(loadParameters));
+                        SoundLoadParameters* loadParameters = &audioClip.Parameters;
 
-                    if (handle != uint.MaxValue) {
-                        audioClip.Handle = handle;
-                        CommandBuffer.SetComponent(entity, audioClip);
-                        CommandBuffer.RemoveComponent<LoadPath>(entity);
+                        var handle = MiniAudioHandler.UnsafeLoadSound(
+                            new IntPtr(fullPath.GetUnsafeReadOnlyPtr<char>()),
+                            (uint)fullPath.Length,
+                            new IntPtr(loadParameters));
+
+                        if (handle != uint.MaxValue) {
+                            audioClip.Handle = handle;
+                            CommandBuffer.SetComponent(entity, audioClip);
+                            CommandBuffer.RemoveComponent<LoadPath>(entity);
+                        }
+                        fullPath.Clear();
+                    }
+                } else {
+                    for (int i = 0; i < batchInChunk.Count; i++) {
+                        var entity = entities[i];
+                        var audioClip = audioClips[i];
+                        var pathBuffer = loadParams[i];
+
+                        char* path = (char*)pathBuffer.GetUnsafeReadOnlyPtr();
+                        SoundLoadParameters* loadParameters = &audioClip.Parameters;
+
+                        var handle = MiniAudioHandler.UnsafeLoadSound(
+                            new IntPtr(path),
+                            (uint)pathBuffer.Length,
+                            new IntPtr(loadParameters));
+
+                        if (handle != uint.MaxValue) {
+                            audioClip.Handle = handle;
+                            CommandBuffer.SetComponent(entity, audioClip);
+                            CommandBuffer.RemoveComponent<LoadPath>(entity);
+                        }
                     }
                 }
             }
@@ -127,7 +162,6 @@ namespace MiniAudio.Entities.Systems {
                     var entity = entities[i];
 
                     MiniAudioHandler.SetSoundVolume(audioClip.Handle, audioClip.Parameters.Volume);
-                    // UnityEngine.Debug.Log(audioClip.Parameters.Volume);
 
                     if (lastState != audioClip.CurrentState) {
                         switch (audioClip.CurrentState) {
@@ -153,6 +187,7 @@ namespace MiniAudio.Entities.Systems {
         EntityQuery initializationQuery;
         EntityQuery soundQuery;
         EntityCommandBufferSystem commandBufferSystem;
+        NativeArray<char> fixedStreamingPath;
 
         protected override void OnCreate() {
             initializationQuery = GetEntityQuery(new EntityQueryDesc {
@@ -161,24 +196,42 @@ namespace MiniAudio.Entities.Systems {
 
             soundQuery = GetEntityQuery(new EntityQueryDesc() {
                 All = new[] {
-                    ComponentType.ReadOnly<AudioClip>(), ComponentType.ReadOnly<AudioStateHistory>()
+                    ComponentType.ReadOnly<AudioClip>(),
+                    ComponentType.ReadOnly<AudioStateHistory>()
                 },
-                None = new[] {
-                    ComponentType.ReadOnly<LoadPath>(),
-                    // ComponentType.ReadOnly<StreamingPathMetadata>()
-                }
+                Any = new[] { ComponentType.ReadOnly<StreamingPathTag>() },
+                None = new[] { ComponentType.ReadOnly<LoadPath>(), }
             });
 
+            var streamingPath = Application.streamingAssetsPath;
+            var fixedStreamingPath = new NativeList<char>(streamingPath.Length, Allocator.Persistent);
+
+            for (int i = 0; i < streamingPath.Length; i++) {
+                fixedStreamingPath.AddNoResize(streamingPath[i]);
+            }
+            this.fixedStreamingPath = fixedStreamingPath.AsArray();
             commandBufferSystem = World.GetOrCreateSystem<EndInitializationEntityCommandBufferSystem>();
         }
 
+        protected override void OnDestroy() {
+            if (fixedStreamingPath.IsCreated) {
+                fixedStreamingPath.Dispose();
+            }
+        } 
+
         protected override void OnUpdate() {
+            if (!MiniAudioHandler.IsEngineInitialized()) {
+                return;
+            }
+
             var commandBuffer = commandBufferSystem.CreateCommandBuffer();
             new LoadSoundJob {
                 LoadPathType = GetBufferTypeHandle<LoadPath>(true),
                 AudioClipType = GetComponentTypeHandle<AudioClip>(true),
                 EntityType = GetEntityTypeHandle(),
-                CommandBuffer = commandBuffer
+                CommandBuffer = commandBuffer,
+                StreamingPathType = GetComponentTypeHandle<StreamingPathTag>(true),
+                StreamingPath = fixedStreamingPath
             }.Run(initializationQuery);
 
             new StopSoundJob {
