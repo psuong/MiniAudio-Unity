@@ -16,8 +16,6 @@ namespace MiniAudio.Entities.Authoring {
                 return;
             }
 
-            Debug.Log($"{Application.streamingAssetsPath}/{Path}");
-
             var path = IsPathStreamingAssets ? $"/{Path}" : Path;
 
             var buffer = dstManager.AddBuffer<LoadPath>(entity);

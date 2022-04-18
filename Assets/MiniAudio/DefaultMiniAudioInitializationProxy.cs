@@ -5,24 +5,28 @@ namespace MiniAudio {
 
     public class DefaultMiniAudioInitializationProxy : MonoBehaviour {
 
-        public string Path;
-        public string Path2;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void Setup() {
+            var go = new GameObject("MiniAudio Proxy") {
+#if !UNITY_EDITOR
+                hideFlags = HideFlags.HideInHierarchy
+#endif
+            };
+            go.AddComponent<DefaultMiniAudioInitializationProxy>();
+            Object.DontDestroyOnLoad(go);
+        }
 
-        uint handle;
-
-        void OnEnable() {
+        void Start() {
             ConstantImports.Initialize();
             DefaultLogInitialization.InitializeLibrary();
 #if UNITY_EDITOR_WIN && MINIAUDIO_DEVELOP
             MiniAudioHandler.InitializeLibrary();
 #endif
-        }
 
-        void Start() {
             MiniAudioHandler.InitializeEngine();
         }
 
-        void OnDisable() {
+        void OnDestroy() {
             MiniAudioHandler.ReleaseEngine();
             ConstantImports.Release();
         }
