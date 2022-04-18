@@ -4,3 +4,6 @@
 [submodule "Assets/InitialPrefabs.ImGui"]
 	path = Assets/InitialPrefabs.ImGui
 	url = git@github.com:InitialPrefabs/InitialPrefabs.ImGui.git
+[submodule "Assets/MiniAudio/MiniAudio.Unity.Bindings/miniaudio"]
+	path = Assets/MiniAudio/MiniAudio.Unity.Bindings/miniaudio
+	url = git@github.com:mackron/miniaudio.git

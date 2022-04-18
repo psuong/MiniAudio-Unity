@@ -3,7 +3,8 @@ using UnityEngine;
 
 namespace MiniAudio {
 
-    public class DefaultMiniAudioInitializationProxy : MonoBehaviour {
+    [AddComponentMenu("")]
+    internal class DefaultMiniAudioInitializationProxy : MonoBehaviour {
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Setup() {

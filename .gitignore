@@ -66,12 +66,12 @@ crashlytics-build.properties
 
 # Packed Addressables
 /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
-
+                                           
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
-
-.vscode/
+                                  
+ .vscode/
 *.lib
 *.lib.meta
 *.exp
@@ -80,8 +80,21 @@ crashlytics-build.properties
 *.dll.meta
 *.pdb
 *.pdb.meta
-
+                                 
 /[Aa]ssets/MiniAudio/Plugins
 /[Aa]ssets/MiniAudio/Plugins.meta
 Assets/StreamingAssets
 Assets/StreamingAssets.meta
+
+/[Aa]ssets/MiniAudio/MiniAudio.Unity.Bindings/*.meta
+/[Aa]ssets/MiniAudio/MiniAudio.Unity.Bindings/headers/*.meta
+/[Aa]ssets/MiniAudio/MiniAudio.Unity.Bindings/src/*.meta
+/[Aa]ssets/MiniAudio/MiniAudio.Unity.Bindings/tests/*.meta
+/[Aa]ssets/MiniAudio/MiniAudio.Unity.Bindings/Plugins/.cmake
+/[Aa]ssets/MiniAudio/MiniAudio.Unity.Bindings/Plugins/CMakeFiles/
+Assets/MiniAudio/Assets/MiniAudio/Plugins/CMakeFiles
+Assets/MiniAudio/Assets/MiniAudio/Plugins/.cmake
+Assets/MiniAudio/Assets/MiniAudio/Plugins/build.ninja.meta
+Assets/MiniAudio/Assets/MiniAudio/Plugins/cmake_install.cmake.meta
+Assets/MiniAudio/Assets/MiniAudio/Plugins/CMakeCache.txt.meta
+Assets/MiniAudio/Assets/MiniAudio/Plugins/CMakeFiles.meta
