@@ -98,3 +98,7 @@ Assets/MiniAudio/Assets/MiniAudio/Plugins/build.ninja.meta
 Assets/MiniAudio/Assets/MiniAudio/Plugins/cmake_install.cmake.meta
 Assets/MiniAudio/Assets/MiniAudio/Plugins/CMakeCache.txt.meta
 Assets/MiniAudio/Assets/MiniAudio/Plugins/CMakeFiles.meta
+Assets/MiniAudio/Assets/MiniAudio/Plugins/tests.exe
+Assets/MiniAudio/Assets/MiniAudio/Plugins/tests.exe.manifest
+Assets/MiniAudio/Assets/MiniAudio/Plugins/.ninja_log
+Assets/MiniAudio/Assets/MiniAudio/Plugins/.ninja_deps
