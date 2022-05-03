@@ -1,3 +1,6 @@
 [submodule "Assets/MiniAudio.Unity"]
     path = Assets/MiniAudio.Unity
     url = git@github.com:InitialPrefabs/MiniAudio.Unity.git 
+[submodule "MiniAudio.Unity.Native"]
+	path = MiniAudio.Unity.Native
+	url = git@github.com:InitialPrefabs/MiniAudio.Unity.Native.git
