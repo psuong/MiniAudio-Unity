@@ -1,6 +1,3 @@
-[submodule "Assets/InitialPrefabs.ImGui"]
-	path = Assets/InitialPrefabs.ImGui
-    url = git@github.com:InitialPrefabs/InitialPrefabs.ImGui.git
 [submodule "Assets/MiniAudio.Unity"]
     path = Assets/MiniAudio.Unity
     url = git@github.com:InitialPrefabs/MiniAudio.Unity.git 
