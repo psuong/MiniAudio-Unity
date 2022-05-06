@@ -170,6 +170,6 @@ MonoBehaviour:
   Path: Audio/Stronghold.mp3
   Parameters:
     IsLooping: 1
-    Volume: 1
+    Volume: 0.48999998
     StartTime: 0
     EndTime: 0
