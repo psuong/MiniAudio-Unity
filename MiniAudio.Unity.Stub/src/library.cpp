@@ -12,6 +12,20 @@ static sound_props_ptr is_sound_playing;
 static sound_props_ptr is_sound_finished;
 static void_ptr release_engine;
 
+void ReleaseAllCallbacks() {
+    initialize_engine = nullptr;
+    is_engine_initialized = nullptr;
+    unsafe_load_sound = nullptr;
+    load_sound = nullptr;
+    unload_sound = nullptr;
+    play_sound = nullptr;
+    stop_sound = nullptr;
+    set_volume = nullptr;
+    is_sound_playing = nullptr;
+    is_sound_finished = nullptr;
+    release_engine = nullptr;
+}
+
 void InitializeEngineCallback(void_ptr callback) {
     if (initialize_engine == nullptr) {
         initialize_engine = callback;

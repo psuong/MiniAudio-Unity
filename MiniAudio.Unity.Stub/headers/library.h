@@ -51,6 +51,8 @@ STUB_API bool ExecuteIsSoundPlayingCallback(uint32_t handle);
 STUB_API bool ExecuteIsSoundFinishedCallback(uint32_t handle);
 STUB_API void ExecuteReleaseEngineCallback();
 
+STUB_API void ReleaseAllCallbacks();
+
 };
 
 #endif //MINIAUDIO_UNITY_STUB_LIBRARY_H
