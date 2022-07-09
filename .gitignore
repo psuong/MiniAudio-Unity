@@ -104,3 +104,6 @@ crashlytics-build.properties
 /[Aa]ssets/MiniAudio/Assets/MiniAudio.Unity/Plugins/.ninja_deps
 /[Aa]ssets/MiniAudio/Assets/MiniAudio.Unity/Plugins/tests.exe.manifest.meta
 /[Aa]ssets/MiniAudio/Assets/MiniAudio.Unity/Plugins/tests.exe.meta
+MiniAudio.Unity.Stub/cmake-build-release
+MiniAudio.Unity.Stub/cmake-build-debug
+.idea/
