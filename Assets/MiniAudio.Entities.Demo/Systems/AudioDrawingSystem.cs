@@ -1,13 +1,12 @@
 ﻿using System.Text;
+using ImGuiNET;
+using UImGui;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 
 namespace MiniAudio.Entities.Demo {
 
-    public struct TrackedTag : ISystemStateComponentData { }
-
-    [DisableAutoCreation]
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public partial class AudioDrawingSystem : SystemBase {
 
@@ -15,9 +14,6 @@ namespace MiniAudio.Entities.Demo {
 
         [BurstCompile]
         struct QueryAudioClipJob : IJobEntityBatch {
-
-            [ReadOnly]
-            public ComponentTypeHandle<TrackedTag> TrackedTagType;
 
             [ReadOnly]
             public ComponentTypeHandle<AudioClip> AudioClipType;
@@ -28,26 +24,19 @@ namespace MiniAudio.Entities.Demo {
             [WriteOnly]
             public NativeList<Entity> TrackedEntities;
 
-            public EntityCommandBuffer CommandBuffer;
-
             public void Execute(ArchetypeChunk batchInChunk, int batchIndex) {
                 var audioClips = batchInChunk.GetNativeArray(AudioClipType);
                 var entities = batchInChunk.GetNativeArray(EntityType);
 
-                if (!batchInChunk.Has(TrackedTagType)) {
-                    for (int i = 0; i < batchInChunk.Count; i++) {
-                        var clip = audioClips[i];
-                        var entity = entities[i];
-
-                        CommandBuffer.AddComponent<TrackedTag>(entity);
-                        TrackedEntities.Add(entity);
-                    }
+                for (int i = 0; i < batchInChunk.Count; i++) {
+                    var clip = audioClips[i];
+                    var entity = entities[i];
+                    TrackedEntities.Add(entity);
                 }
             }
         }
 
         EntityQuery audioQuery;
-        EntityQuery destroyedAudioQuery;
         EntityCommandBufferSystem commandBufferSystem;
         NativeList<Entity> trackedEntities;
 
@@ -58,16 +47,16 @@ namespace MiniAudio.Entities.Demo {
                 }
             });
 
-            destroyedAudioQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new[] {
-                    ComponentType.ReadOnly<TrackedTag>()
-                },
-                None = new[] {
-                    ComponentType.ReadOnly<AudioClip>()
-                }
-            });
-
             trackedEntities = new NativeList<Entity>(10, Allocator.Persistent);
+            commandBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
+        }
+
+        protected override void OnStartRunning() {
+            UImGuiUtility.Layout += OnLayout;
+        }
+
+        protected override void OnStopRunning() {
+            UImGuiUtility.Layout -= OnLayout;
         }
 
         protected override void OnDestroy() {
@@ -77,20 +66,70 @@ namespace MiniAudio.Entities.Demo {
         }
 
         protected override void OnUpdate() {
-            if (AudioClipUi.Instance != null &&
-                AudioClipUi.Instance.Containers.Count != trackedEntities.Length) {
-                var audioClips = GetComponentDataFromEntity<AudioClip>(true);
-                for (int i = 0; i < trackedEntities.Length; i++) {
-                    var entity = trackedEntities[i];
-                    
-                }
-            }
-
             new QueryAudioClipJob {
-                TrackedTagType = GetComponentTypeHandle<TrackedTag>(true),
                 AudioClipType = GetComponentTypeHandle<AudioClip>(true),
+                EntityType = GetEntityTypeHandle(),
                 TrackedEntities = trackedEntities,
             }.Run(audioQuery);
+        }
+
+        unsafe void OnLayout(UImGui.UImGui obj) {
+            var audioClips = GetComponentDataFromEntity<AudioClip>(true);
+            var loadPaths = GetComponentDataFromEntity<Path>(true);
+            var commandBuffer = commandBufferSystem.CreateCommandBuffer();
+
+            ImGui.Begin("MiniAudio Demo");
+            for (int i = 0; i < trackedEntities.Length; i++) {
+                var entity = trackedEntities[i];
+                var loadPath = loadPaths[entity];
+                var audioClip = audioClips[entity];
+
+                ref var path = ref loadPath.Value.Value.Path;
+
+                StringBuilder.Clear().Append("File: ");
+                for (int j = 0; j < path.Length; j++) {
+                    StringBuilder.Append(path[j]);
+                }
+                ImGui.Text(StringBuilder.ToString());
+
+                bool changed = false;
+
+                switch (audioClip.CurrentState) {
+                    case AudioState.Paused:
+                        if (ImGui.Button("Resume")) {
+                            audioClip.CurrentState = AudioState.Playing;
+                            changed |= true;
+                        }
+                        break;
+                    case AudioState.Playing:
+                        if (ImGui.Button("Pause")) {
+                            audioClip.CurrentState = AudioState.Paused;
+                            changed |= true;
+                        }
+                        break;
+                    case AudioState.Stopped:
+                        if (ImGui.Button("Play")) {
+                            audioClip.CurrentState = AudioState.Playing;
+                            changed |= true;
+                        }
+                        break;
+                }
+
+                ImGui.SameLine();
+                if (ImGui.Button("Stop")) {
+                    audioClip.CurrentState = AudioState.Stopped;
+                    changed |= true;
+                }
+
+                changed |= ImGui.SliderFloat("Volume", ref audioClip.Parameters.Volume, 0, 1f);
+
+                if (changed) {
+                    commandBuffer.SetComponent(entity, audioClip);
+                }
+            }
+            ImGui.End();
+
+            trackedEntities.Clear();
         }
     }
 }

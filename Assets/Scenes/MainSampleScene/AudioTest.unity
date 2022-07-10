@@ -168,7 +168,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IsPathStreamingAssets: 1
-  Path: Audio/Stronghold.ogg
+  Path: Audio/Stronghold.mp3
   Parameters:
     IsLooping: 1
     Volume: 1

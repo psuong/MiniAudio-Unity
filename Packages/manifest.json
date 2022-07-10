@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.psydack.uimgui": "4.1.0",
     "com.unity.burst": "1.6.5",
     "com.unity.collections": "1.2.3",
     "com.unity.entities": "0.51.0-preview.32",
