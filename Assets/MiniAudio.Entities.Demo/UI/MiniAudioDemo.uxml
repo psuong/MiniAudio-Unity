@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+    >
+
+<Style src="MiniAudioDemo.uss"/>
+<engine:VisualElement class="center">
+    <engine:Label text="MiniAudio Unity Demo" class="title"/>
+    <!--
+    <engine:VisualElement name="group">
+        <engine:Label text="Clip Name" class="subtitle" name="clip-name"/>
+        <engine:Button text="Play Audio" name="play"/>
+        <engine:Button text="Stop Audio" name="stop"/>
+        <engine:Slider label="Volume" low-value="0" high-value="100" value="50" name="vol"/>
+    </engine:VisualElement>
+    -->
+
+    <!--
+    <engine:Template src="/Assets/MiniAudio.Entities.Demo/UI/AudioClip.uxml" name="Clip"/>
+    <engine:Instance template="Clip"/>
+    -->
+</engine:VisualElement>
+</engine:UXML>

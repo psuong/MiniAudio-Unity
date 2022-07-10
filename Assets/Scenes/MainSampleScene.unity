@@ -243,7 +243,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 565c3f52d75fc504d9251342131d5ca8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: Demo
+  ClipAsset: {fileID: 9197481963319205126, guid: f310b2c94af6d854784ccaf0a3e1dd50, type: 3}
 --- !u!114 &958832487
 MonoBehaviour:
   m_ObjectHideFlags: 0
