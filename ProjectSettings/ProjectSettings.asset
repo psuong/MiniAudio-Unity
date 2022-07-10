@@ -539,7 +539,7 @@ PlayerSettings:
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
-    Standalone: DOTS_ADD_PARTIAL_KEYWORD;MINIAUDIO_DEVELOP_
+    Standalone: MINIAUDIO_DEVELOP_
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

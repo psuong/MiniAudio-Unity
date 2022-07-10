@@ -4,6 +4,7 @@ using UImGui;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace MiniAudio.Entities.Demo {
 
@@ -121,7 +122,9 @@ namespace MiniAudio.Entities.Demo {
                     changed |= true;
                 }
 
-                changed |= ImGui.SliderFloat("Volume", ref audioClip.Parameters.Volume, 0, 1f);
+                var volume = math.sqrt(audioClip.Parameters.Volume);
+                changed |= ImGui.SliderFloat("Volume", ref volume, 0, 1f);
+                audioClip.Parameters.Volume = volume * volume;
 
                 if (changed) {
                     commandBuffer.SetComponent(entity, audioClip);
