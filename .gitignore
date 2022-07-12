@@ -66,11 +66,10 @@ crashlytics-build.properties
 
 # Packed Addressables
 /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
-                                           
+
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
-                                  
  .vscode/
 *.lib
 *.lib.meta
@@ -80,7 +79,7 @@ crashlytics-build.properties
 *.dll.meta
 *.pdb
 *.pdb.meta
-                                 
+
 /[Aa]ssets/MiniAudio/Plugins
 /[Aa]ssets/MiniAudio/Plugins.meta
 /[Aa]ssets/StreamingAssets
@@ -107,3 +106,4 @@ crashlytics-build.properties
 MiniAudio.Unity.Stub/cmake-build-release
 MiniAudio.Unity.Stub/cmake-build-debug
 .idea/
+CodeCoverage/
