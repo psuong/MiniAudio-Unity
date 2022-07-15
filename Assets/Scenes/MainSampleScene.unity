@@ -230,7 +230,7 @@ MonoBehaviour:
   _camera: {fileID: 122467771}
   _renderFeature: {fileID: 0}
   _rendererType: 0
-  _platformType: 0
+  _platformType: 1
   _iniSettings: {fileID: 0}
   _initialConfiguration:
     ImGuiConfig: 65
