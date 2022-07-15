@@ -50,5 +50,8 @@
         "com.psydack.uimgui"
       ]
     }
+  ],
+  "testables": [
+    "com.unity.entities"
   ]
 }
