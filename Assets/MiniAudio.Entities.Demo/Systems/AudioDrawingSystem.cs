@@ -1,5 +1,7 @@
 ﻿using System.Text;
 using ImGuiNET;
+using MiniAudio.Entities.Systems;
+using MiniAudio.Interop;
 using UImGui;
 using Unity.Burst;
 using Unity.Collections;
@@ -8,7 +10,7 @@ using Unity.Mathematics;
 
 namespace MiniAudio.Entities.Demo {
 
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class AudioDrawingSystem : SystemBase {
 
         static readonly StringBuilder StringBuilder = new StringBuilder(256);
@@ -37,9 +39,33 @@ namespace MiniAudio.Entities.Demo {
             }
         }
 
+        [BurstCompile]
+        struct QueryPooledAudioJob : IJobEntityBatch {
+
+            [ReadOnly]
+            public EntityTypeHandle EntityType;
+
+            [WriteOnly]
+            public NativeList<Entity> TrackedEntities;
+
+            public void Execute(ArchetypeChunk batchInChunk, int batchIndex) {
+                var entities = batchInChunk.GetNativeArray(EntityType);
+                for (int i = 0; i < batchInChunk.Count; i++) {
+                    var entity = entities[i];
+                    TrackedEntities.Add(entity);
+                }
+            }
+        }
+
         EntityQuery audioQuery;
+        EntityQuery pooledAudioQuery;
+
+        OneShotAudioSystem oneShotAudioSystem;
         EntityCommandBufferSystem commandBufferSystem;
         NativeList<Entity> trackedEntities;
+        NativeList<Entity> pooledEntities;
+
+        float[] volume;
 
         protected override void OnCreate() {
             audioQuery = GetEntityQuery(new EntityQueryDesc {
@@ -48,8 +74,19 @@ namespace MiniAudio.Entities.Demo {
                 }
             });
 
+            pooledAudioQuery = GetEntityQuery(new EntityQueryDesc {
+                All = new[] {
+                    ComponentType.ReadOnly<FreeHandle>(),
+                    ComponentType.ReadOnly<UsedHandle>()
+                }
+            });
+
             trackedEntities = new NativeList<Entity>(10, Allocator.Persistent);
-            commandBufferSystem = World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
+            pooledEntities = new NativeList<Entity>(10, Allocator.Persistent);
+
+            oneShotAudioSystem = World.GetOrCreateSystem<OneShotAudioSystem>();
+            commandBufferSystem = World
+                .GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
         protected override void OnStartRunning() {
@@ -64,6 +101,10 @@ namespace MiniAudio.Entities.Demo {
             if (trackedEntities.IsCreated) {
                 trackedEntities.Dispose();
             }
+
+            if (pooledEntities.IsCreated) {
+                pooledEntities.Dispose();
+            }
         }
 
         protected override void OnUpdate() {
@@ -72,6 +113,11 @@ namespace MiniAudio.Entities.Demo {
                 EntityType = GetEntityTypeHandle(),
                 TrackedEntities = trackedEntities,
             }.Run(audioQuery);
+
+            new QueryPooledAudioJob {
+                EntityType = GetEntityTypeHandle(),
+                TrackedEntities = pooledEntities
+            }.Run(pooledAudioQuery);
         }
 
         unsafe void OnLayout(UImGui.UImGui obj) {
@@ -130,9 +176,53 @@ namespace MiniAudio.Entities.Demo {
                     commandBuffer.SetComponent(entity, audioClip);
                 }
             }
+
+            var freeHandles = GetBufferFromEntity<FreeHandle>(true);
+            var usedHandles = GetBufferFromEntity<UsedHandle>(true);
+            var paths = GetComponentDataFromEntity<Path>(true);
+
+            var audioCommandBuffer = oneShotAudioSystem.CreateCommandBuffer();
+
+            for (int i = 0; i < pooledEntities.Length; i++) {
+                var entity = pooledEntities[i];
+
+                var freeHandleBuffer = freeHandles[entity].AsNativeArray();
+                var path = paths[entity];
+
+                ref var pathArray = ref path.Value.Value.Path;
+
+                StringBuilder.Clear();
+                for (int j = 0; j < pathArray.Length; j++) {
+                    StringBuilder.Append(pathArray[j]);
+                }
+
+                ImGui.LabelText("Path", StringBuilder.ToString());
+                StringBuilder.Clear();
+
+                if (volume == null) {
+                    volume = new float[freeHandleBuffer.Length];
+                } else if (freeHandleBuffer.Length > volume.Length) {
+                    System.Array.Resize(ref volume, freeHandleBuffer.Length);
+                }
+
+                for (int j = freeHandleBuffer.Length - 1; j >= 0; j--) {
+                    StringBuilder.Append("Play Sound: ").Append(freeHandleBuffer[j].Value);
+                    if (ImGui.Button(StringBuilder.ToString())) {
+                        var p = new string((char*)pathArray.GetUnsafePtr());
+                        audioCommandBuffer.Request(new FixedString512Bytes(p), volume[j]);
+                    }
+
+                    ImGui.SameLine();
+
+                    StringBuilder.Clear().Append("Volume ").Append(j);
+                    ImGui.SliderFloat(StringBuilder.ToString(), ref volume[j], 0, 1);
+                    StringBuilder.Clear();
+                }
+            }
             ImGui.End();
 
             trackedEntities.Clear();
+            pooledEntities.Clear();
         }
     }
 }
