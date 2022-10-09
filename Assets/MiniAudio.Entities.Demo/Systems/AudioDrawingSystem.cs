@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using ImGuiNET;
 using MiniAudio.Entities.Systems;
-using MiniAudio.Interop;
 using UImGui;
 using Unity.Burst;
 using Unity.Collections;
@@ -84,9 +83,9 @@ namespace MiniAudio.Entities.Demo {
             trackedEntities = new NativeList<Entity>(10, Allocator.Persistent);
             pooledEntities = new NativeList<Entity>(10, Allocator.Persistent);
 
-            oneShotAudioSystem = World.GetOrCreateSystem<OneShotAudioSystem>();
+            oneShotAudioSystem = World.GetOrCreateSystemManaged<OneShotAudioSystem>();
             commandBufferSystem = World
-                .GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
+                .GetOrCreateSystemManaged<BeginPresentationEntityCommandBufferSystem>();
         }
 
         protected override void OnStartRunning() {
@@ -121,8 +120,8 @@ namespace MiniAudio.Entities.Demo {
         }
 
         unsafe void OnLayout(UImGui.UImGui obj) {
-            var audioClips = GetComponentDataFromEntity<AudioClip>(true);
-            var loadPaths = GetComponentDataFromEntity<Path>(true);
+            var audioClips = GetComponentLookup<AudioClip>(true);
+            var loadPaths = GetComponentLookup<Path>(true);
             var commandBuffer = commandBufferSystem.CreateCommandBuffer();
 
             ImGui.Begin("MiniAudio Demo");
@@ -177,9 +176,9 @@ namespace MiniAudio.Entities.Demo {
                 }
             }
 
-            var freeHandles = GetBufferFromEntity<FreeHandle>(true);
-            var usedHandles = GetBufferFromEntity<UsedHandle>(true);
-            var paths = GetComponentDataFromEntity<Path>(true);
+            var freeHandles = GetBufferLookup<FreeHandle>(true);
+            // var usedHandles = GetBufferLookup<UsedHandle>(true);
+            var paths = GetComponentLookup<Path>(true);
 
             var audioCommandBuffer = oneShotAudioSystem.CreateCommandBuffer();
 
