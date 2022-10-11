@@ -7,4 +7,6 @@ set(CMAKE_CXX_STANDARD 14)
 
 add_library(MiniAudio_Unity_Stub SHARED src/library.cpp)
 
+add_compile_options(-O3)
+
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Assets/MiniAudio.Unity/Plugins)
