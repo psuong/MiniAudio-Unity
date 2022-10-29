@@ -14,7 +14,7 @@
     "com.unity.render-pipelines.universal": "14.0.3",
     "com.unity.scriptablebuildpipeline": "1.20.2",
     "com.unity.test-framework": "1.1.33",
-    "com.unity.testtools.codecoverage": "1.1.1",
+    "com.unity.testtools.codecoverage": "1.2.0",
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.ugui": "1.0.0",
     "com.unity.ui": "2.0.0",

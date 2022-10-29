@@ -120,8 +120,8 @@ namespace MiniAudio.Entities.Demo {
         }
 
         unsafe void OnLayout(UImGui.UImGui obj) {
-            var audioClips = GetComponentLookup<AudioClip>(true);
-            var loadPaths = GetComponentLookup<Path>(true);
+            var audioClips = SystemAPI.GetComponentLookup<AudioClip>(true);
+            var loadPaths = SystemAPI.GetComponentLookup<Path>(true);
             var commandBuffer = commandBufferSystem.CreateCommandBuffer();
 
             ImGui.Begin("MiniAudio Demo");
@@ -144,19 +144,19 @@ namespace MiniAudio.Entities.Demo {
                     case AudioState.Paused:
                         if (ImGui.Button("Resume")) {
                             audioClip.CurrentState = AudioState.Playing;
-                            changed |= true;
+                            changed = true;
                         }
                         break;
                     case AudioState.Playing:
                         if (ImGui.Button("Pause")) {
                             audioClip.CurrentState = AudioState.Paused;
-                            changed |= true;
+                            changed = true;
                         }
                         break;
                     case AudioState.Stopped:
                         if (ImGui.Button("Play")) {
                             audioClip.CurrentState = AudioState.Playing;
-                            changed |= true;
+                            changed = true;
                         }
                         break;
                 }
@@ -164,7 +164,7 @@ namespace MiniAudio.Entities.Demo {
                 ImGui.SameLine();
                 if (ImGui.Button("Stop")) {
                     audioClip.CurrentState = AudioState.Stopped;
-                    changed |= true;
+                    changed = true;
                 }
 
                 var volume = math.sqrt(audioClip.Parameters.Volume);
@@ -176,9 +176,9 @@ namespace MiniAudio.Entities.Demo {
                 }
             }
 
-            var freeHandles = GetBufferLookup<FreeHandle>(true);
+            var freeHandles = SystemAPI.GetBufferLookup<FreeHandle>(true);
             // var usedHandles = GetBufferLookup<UsedHandle>(true);
-            var paths = GetComponentLookup<Path>(true);
+            var paths = SystemAPI.GetComponentLookup<Path>(true);
 
             var audioCommandBuffer = oneShotAudioSystem.CreateCommandBuffer();
 
