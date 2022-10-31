@@ -1,11 +1,13 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using ImGuiNET;
 using MiniAudio.Entities.Systems;
 using UImGui;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
+using Unity.Scenes;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MiniAudio.Entities.Demo {
 
@@ -14,214 +16,118 @@ namespace MiniAudio.Entities.Demo {
 
         static readonly StringBuilder StringBuilder = new StringBuilder(256);
 
-        [BurstCompile]
-        struct QueryAudioClipJob : IJobEntityBatch {
-
-            [ReadOnly]
-            public ComponentTypeHandle<AudioClip> AudioClipType;
-
-            [ReadOnly]
-            public EntityTypeHandle EntityType;
-
-            [WriteOnly]
-            public NativeList<Entity> TrackedEntities;
-
-            public void Execute(ArchetypeChunk batchInChunk, int batchIndex) {
-                var audioClips = batchInChunk.GetNativeArray(AudioClipType);
-                var entities = batchInChunk.GetNativeArray(EntityType);
-
-                for (int i = 0; i < batchInChunk.Count; i++) {
-                    var clip = audioClips[i];
-                    var entity = entities[i];
-                    TrackedEntities.Add(entity);
-                }
-            }
-        }
-
-        [BurstCompile]
-        struct QueryPooledAudioJob : IJobEntityBatch {
-
-            [ReadOnly]
-            public EntityTypeHandle EntityType;
-
-            [WriteOnly]
-            public NativeList<Entity> TrackedEntities;
-
-            public void Execute(ArchetypeChunk batchInChunk, int batchIndex) {
-                var entities = batchInChunk.GetNativeArray(EntityType);
-                for (int i = 0; i < batchInChunk.Count; i++) {
-                    var entity = entities[i];
-                    TrackedEntities.Add(entity);
-                }
-            }
-        }
-
-        EntityQuery audioQuery;
-        EntityQuery pooledAudioQuery;
-
-        OneShotAudioSystem oneShotAudioSystem;
-        EntityCommandBufferSystem commandBufferSystem;
-        NativeList<Entity> trackedEntities;
-        NativeList<Entity> pooledEntities;
-
         float[] volume;
-
-        protected override void OnCreate() {
-            audioQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new[] {
-                    ComponentType.ReadOnly<AudioClip>()
-                }
-            });
-
-            pooledAudioQuery = GetEntityQuery(new EntityQueryDesc {
-                All = new[] {
-                    ComponentType.ReadOnly<FreeHandle>(),
-                    ComponentType.ReadOnly<UsedHandle>()
-                }
-            });
-
-            trackedEntities = new NativeList<Entity>(10, Allocator.Persistent);
-            pooledEntities = new NativeList<Entity>(10, Allocator.Persistent);
-
-            oneShotAudioSystem = World.GetOrCreateSystemManaged<OneShotAudioSystem>();
-            commandBufferSystem = World
-                .GetOrCreateSystemManaged<BeginPresentationEntityCommandBufferSystem>();
-        }
+        float primaryVolume = 1.0f;
+        bool initialized;
 
         protected override void OnStartRunning() {
-            UImGuiUtility.Layout += OnLayout;
-        }
-
-        protected override void OnStopRunning() {
-            UImGuiUtility.Layout -= OnLayout;
+            if (!initialized) {
+                UImGuiUtility.Layout += OnLayout;
+                initialized = true;
+            }
         }
 
         protected override void OnDestroy() {
-            if (trackedEntities.IsCreated) {
-                trackedEntities.Dispose();
-            }
-
-            if (pooledEntities.IsCreated) {
-                pooledEntities.Dispose();
-            }
+            UImGuiUtility.Layout -= OnLayout;
         }
 
-        protected override void OnUpdate() {
-            new QueryAudioClipJob {
-                AudioClipType = GetComponentTypeHandle<AudioClip>(true),
-                EntityType = GetEntityTypeHandle(),
-                TrackedEntities = trackedEntities,
-            }.Run(audioQuery);
-
-            new QueryPooledAudioJob {
-                EntityType = GetEntityTypeHandle(),
-                TrackedEntities = pooledEntities
-            }.Run(pooledAudioQuery);
-        }
+        protected override void OnUpdate() { }
 
         unsafe void OnLayout(UImGui.UImGui obj) {
-            var audioClips = SystemAPI.GetComponentLookup<AudioClip>(true);
-            var loadPaths = SystemAPI.GetComponentLookup<Path>(true);
-            var commandBuffer = commandBufferSystem.CreateCommandBuffer();
-
-            ImGui.Begin("MiniAudio Demo");
-            for (int i = 0; i < trackedEntities.Length; i++) {
-                var entity = trackedEntities[i];
-                var loadPath = loadPaths[entity];
-                var audioClip = audioClips[entity];
-
-                ref var path = ref loadPath.Value.Value.Path;
-
-                StringBuilder.Clear().Append("File: ");
-                for (int j = 0; j < path.Length; j++) {
-                    StringBuilder.Append(path[j]);
+            if (ImGui.Button("Load SubScenes")) {
+                var subScene = Object.FindObjectOfType<SubScene>();
+                if (subScene != null & !subScene.IsLoaded) {
+                    var sceneEntity = SceneSystem.GetSceneEntity(World.Unmanaged, subScene.SceneGUID);
+                    if (!SceneSystem.IsSceneLoaded(World.Unmanaged, sceneEntity)) {
+                        SceneSystem.LoadSceneAsync(World.Unmanaged, sceneEntity);
+                    }
                 }
+            }
+            StringBuilder.Clear().Append("File: ").Append(Application.streamingAssetsPath);
+
+            var ecbSingleton = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>();
+            var commandBuffer = ecbSingleton.CreateCommandBuffer(World.Unmanaged);
+
+            foreach (var (audioClip, path, entity) in 
+                SystemAPI.Query<AudioClip, Path>().WithEntityAccess()) {
+
+                ref var filePath = ref path.Value.Value.Path;
+                for (int i = 0; i < filePath.Length; i++) {
+                    StringBuilder.Append(filePath[i]);
+                }
+
                 ImGui.Text(StringBuilder.ToString());
 
-                bool changed = false;
+                var audioClipCopy = audioClip;
 
-                switch (audioClip.CurrentState) {
+                switch (audioClipCopy.CurrentState) {
                     case AudioState.Paused:
                         if (ImGui.Button("Resume")) {
-                            audioClip.CurrentState = AudioState.Playing;
-                            changed = true;
+                            audioClipCopy.CurrentState = AudioState.Playing;
                         }
                         break;
                     case AudioState.Playing:
                         if (ImGui.Button("Pause")) {
-                            audioClip.CurrentState = AudioState.Paused;
-                            changed = true;
+                            audioClipCopy.CurrentState = AudioState.Paused;
+                        }
+
+                        if (ImGui.SliderFloat("Volume", ref primaryVolume, 0f, 1.0f)) {
+                            audioClipCopy.Parameters.Volume = primaryVolume;
                         }
                         break;
                     case AudioState.Stopped:
                         if (ImGui.Button("Play")) {
-                            audioClip.CurrentState = AudioState.Playing;
-                            changed = true;
+                            audioClipCopy.CurrentState = AudioState.Playing;
                         }
                         break;
                 }
 
                 ImGui.SameLine();
                 if (ImGui.Button("Stop")) {
-                    audioClip.CurrentState = AudioState.Stopped;
-                    changed = true;
+                    audioClipCopy.CurrentState = AudioState.Stopped;
                 }
 
-                var volume = math.sqrt(audioClip.Parameters.Volume);
-                changed |= ImGui.SliderFloat("Volume", ref volume, 0, 1f);
-                audioClip.Parameters.Volume = volume * volume;
-
-                if (changed) {
-                    commandBuffer.SetComponent(entity, audioClip);
+                if (audioClipCopy != audioClip) {
+                    commandBuffer.SetComponent(entity, audioClipCopy);
                 }
             }
+            
+            var oneShotAudioSystemSingleton = GetSingleton<OneShotAudioSystem.Singleton>();
+            var audioCommandBuffer = oneShotAudioSystemSingleton.CreateCommandBuffer();
 
-            var freeHandles = SystemAPI.GetBufferLookup<FreeHandle>(true);
-            // var usedHandles = GetBufferLookup<UsedHandle>(true);
-            var paths = SystemAPI.GetComponentLookup<Path>(true);
+            ImGui.Begin("Pooled Audio");
+            foreach (var (freeHandle, loadPath) in 
+                SystemAPI
+                    .Query<DynamicBuffer<FreeHandle>, Path>()
+                    .WithAll<AudioPoolID>()) {
 
-            var audioCommandBuffer = oneShotAudioSystem.CreateCommandBuffer();
-
-            for (int i = 0; i < pooledEntities.Length; i++) {
-                var entity = pooledEntities[i];
-
-                var freeHandleBuffer = freeHandles[entity].AsNativeArray();
-                var path = paths[entity];
-
-                ref var pathArray = ref path.Value.Value.Path;
-
-                StringBuilder.Clear();
-                for (int j = 0; j < pathArray.Length; j++) {
-                    StringBuilder.Append(pathArray[j]);
-                }
-
-                ImGui.LabelText("Path", StringBuilder.ToString());
-                StringBuilder.Clear();
+                ref var path = ref loadPath.Value.Value.Path;
+                StringBuilder.Clear()
+                    .Append("File: ")
+                    .Append(new ReadOnlySpan<char>((char*)path.GetUnsafePtr(), path.Length));
+                
+                ImGui.Text(StringBuilder.ToString());
 
                 if (volume == null) {
-                    volume = new float[freeHandleBuffer.Length];
-                } else if (freeHandleBuffer.Length > volume.Length) {
-                    System.Array.Resize(ref volume, freeHandleBuffer.Length);
+                    volume = new float[freeHandle.Length];
+                } else if (freeHandle.Length > volume.Length) {
+                    Array.Resize(ref volume, freeHandle.Length);
                 }
 
-                for (int j = freeHandleBuffer.Length - 1; j >= 0; j--) {
-                    StringBuilder.Append("Play Sound: ").Append(freeHandleBuffer[j].Value);
-                    if (ImGui.Button(StringBuilder.ToString())) {
-                        var p = new string((char*)pathArray.GetUnsafePtr());
-                        audioCommandBuffer.Request(new FixedString512Bytes(p), volume[j]);
+                var play = StringBuilder.Clear().Append("Play").ToString();
+
+                for (int i = freeHandle.Length - 1; i >= 0; i--) {
+                    if (ImGui.Button(play)) {
+                        audioCommandBuffer.Request(loadPath.Value.Value.ID, volume[i]);
                     }
-
+                    
                     ImGui.SameLine();
-
-                    StringBuilder.Clear().Append("Volume ").Append(j);
-                    ImGui.SliderFloat(StringBuilder.ToString(), ref volume[j], 0, 1);
-                    StringBuilder.Clear();
+                    StringBuilder.Clear().Append("Volume ").Append(i);
+                    ImGui.SliderFloat(StringBuilder.ToString(), ref volume[i], 0, 1);
                 }
+                StringBuilder.Clear();
             }
             ImGui.End();
-
-            trackedEntities.Clear();
-            pooledEntities.Clear();
         }
     }
 }
